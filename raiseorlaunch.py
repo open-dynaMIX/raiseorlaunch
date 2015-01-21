@@ -198,6 +198,7 @@ def is_running(config):
             if config.wm_title:
                 if config.wm_title not in wm_title:
                     continue
+            return window['id']
             return True
     return False
 
@@ -222,9 +223,11 @@ def main():
     config = parse_arguments()
 
     if config.workspace:
-        if is_running(config):
+        is_running_id = is_running(config)
+        if is_running_id:
             current_ws_old = get_current_ws()
-            do_focus(config)
+            i3.focus(con_id=is_running_id)
+            # do_focus(config)
             if current_ws_old == config.workspace:
                 switch_ws(config)
         else:
@@ -232,9 +235,10 @@ def main():
                 switch_ws(config)
             run_command(config.command)
     else:
-        if is_running(config):
+        is_running_id = is_running(config)
+        if is_running_id:
             current_ws_old = get_current_ws()
-            do_focus(config)
+            i3.focus(con_id=is_running_id)
             current_ws_new = get_current_ws()
             if current_ws_old == current_ws_new:
                 config.workspace = current_ws_new
