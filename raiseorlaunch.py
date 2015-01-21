@@ -3,7 +3,7 @@
 
 """
 raiseorlaunch 0.1:
-Run-or-raise-application-launcher for i3.
+Run-or-raise-application-launcher for i3 window manager.
 Depends on: python2-i3-git
 """
 

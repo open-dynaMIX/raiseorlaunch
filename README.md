@@ -1,6 +1,6 @@
 # raiseorlaunch
 
-Run-or-raise-application-launcher for i3.
+Run-or-raise-application-launcher for i3 window manager.
 If a specified application is already running, it will just focus the window.
 Else it will run the application.
 
