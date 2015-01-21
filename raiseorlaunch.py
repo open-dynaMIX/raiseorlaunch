@@ -160,7 +160,8 @@ def get_window_tree(config):
     """
     Get the current window tree.
     """
-    # If workspace is given, only check for windows on the specified workspace.
+    # If a workspace is specified, only check for windows on the specified
+    # workspace.
     if config.workspace:
         temptree = i3.filter(name=config.workspace)
         if temptree == []:
@@ -229,7 +230,7 @@ def get_current_ws():
     Get the current workspace name.
     """
     for ws in i3.get_workspaces():
-        if ws['visible'] == True:
+        if ws['visible']:
             return ws['name']
 
 
