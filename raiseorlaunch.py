@@ -133,22 +133,6 @@ def do_focus(config):
     i3.focus(**focus_args)
 
 
-def should_switch(config):
-    """
-    Decide if switching of workspace is necessary.
-    """
-    workspaces = i3.get_workspaces()
-    switch = True
-    for workspace in workspaces:
-        if workspace['name'] == config.workspace:
-            if workspace['visible']:
-                switch = False
-    if switch:
-        return True
-    else:
-        return False
-
-
 def switch_ws(config):
     """
     Do the switching of the workspace.
@@ -239,12 +223,12 @@ def main():
 
     if config.workspace:
         if is_running(config):
-            switch_switch = should_switch(config)
+            current_ws_old = get_current_ws()
             do_focus(config)
-            if not switch_switch:
+            if current_ws_old == config.workspace:
                 switch_ws(config)
         else:
-            if should_switch(config):
+            if not get_current_ws() == config.workspace:
                 switch_ws(config)
             run_command(config.command)
     else:
