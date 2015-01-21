@@ -140,14 +140,14 @@ def switch_ws(config):
     i3.command('workspace', config.workspace)
 
 
-def get_window_tree(config):
+def get_window_tree(workspace):
     """
     Get the current window tree.
     """
     # If a workspace is specified, only check for windows on the specified
     # workspace.
-    if config.workspace:
-        temptree = i3.filter(name=config.workspace)
+    if workspace:
+        temptree = i3.filter(name=workspace)
         if temptree == []:
             return None
         tree = i3.filter(tree=temptree, nodes=[])
@@ -167,7 +167,7 @@ def is_running(config):
     """
     Check if application is running on the (maybe) given workspace.
     """
-    tree = get_window_tree(config)
+    tree = get_window_tree(config.workspace)
     if not tree:
         return False
 
