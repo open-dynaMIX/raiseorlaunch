@@ -18,13 +18,13 @@ https://aur.archlinux.org/packages/python2-i3-git)
 Invocation
 ==========
 
-## Usage
+### Usage
 
 ```
 raiseorlaunch [-h] [-i] [-w WORKSPACE] [-e COMMAND]
 [-c WM_CLASS] [-s WM_INSTANCE] [-t WM_TITLE]
 ```
-## Options
+### Options
 
 
 ```
