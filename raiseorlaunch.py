@@ -164,7 +164,7 @@ def get_window_tree(config):
     if config.workspace:
         temptree = i3.filter(name=config.workspace)
         if temptree == []:
-            return False
+            return None
         tree = i3.filter(tree=temptree, nodes=[])
         for floatlist in temptree[0]['floating_nodes']:
             for float in floatlist['nodes']:
@@ -183,6 +183,8 @@ def is_running(config):
     Check if application is running on the (maybe) given workspace.
     """
     tree = get_window_tree(config)
+    if not tree:
+        return False
 
     # Iterate over the windows
     for window in tree:
