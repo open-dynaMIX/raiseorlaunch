@@ -1,7 +1,7 @@
 # raiseorlaunch
 
 Run-or-raise-application-launcher for i3.
-If a specified application is already running, it will just focus the windows.
+If a specified application is already running, it will just focus the window.
 Else it will run the application.
 
 It's also possible to specify a workspace. That way only this workspace will
