@@ -15,16 +15,17 @@ It depends on i3-py (https://github.com/ziberna/i3-py or - for Arch Linux -
 https://aur.archlinux.org/packages/python2-i3-git)
 
 
-## Invocation
+Invocation
+==========
 
-Usage
-=====
+## Usage
+
 ```
 raiseorlaunch [-h] [-i] [-w WORKSPACE] [-e COMMAND]
 [-c WM_CLASS] [-s WM_INSTANCE] [-t WM_TITLE]
 ```
-Options
-=======
+## Options
+
 
 ```
 -h, --help
