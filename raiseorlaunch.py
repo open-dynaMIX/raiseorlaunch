@@ -176,7 +176,6 @@ def is_running(config):
                 if config.wm_title not in wm_title:
                     continue
             return window['id']
-            return True
     return False
 
 
