@@ -35,9 +35,9 @@ def verify_app(parser, application):
         parser.error("%s is not an executable!" % application)
 
     is_exe = spawn.find_executable(application)
-    if is_exe is None:
+    if not is_exe:
         error_handle()
-    elif is_exe is application:
+    elif is_exe == application:
         if not os.access(application, os.X_OK):
             error_handle()
     return application
