@@ -110,11 +110,11 @@ def parse_arguments():
     return config
 
 
-def switch_ws(config):
+def switch_ws(workspace):
     """
     Do the switching of the workspace.
     """
-    i3.command('workspace', config.workspace)
+    i3.command('workspace', workspace)
 
 
 def get_window_tree(workspace):
@@ -205,20 +205,18 @@ def main():
             current_ws_old = get_current_ws()
             i3.focus(con_id=is_running_id)
             if current_ws_old == config.workspace:
-                switch_ws(config)
+                switch_ws(config.workspace)
         else:
             if not get_current_ws() == config.workspace:
-                switch_ws(config)
+                switch_ws(config.workspace)
             run_command(config.command)
     else:
         is_running_id = is_running(config)
         if is_running_id:
             current_ws_old = get_current_ws()
             i3.focus(con_id=is_running_id)
-            current_ws_new = get_current_ws()
-            if current_ws_old == current_ws_new:
-                config.workspace = current_ws_new
-                switch_ws(config)
+            if current_ws_old == get_current_ws():
+                switch_ws(current_ws_old)
         else:
             run_command(config.command)
 
