@@ -49,7 +49,7 @@ def set_command(parser, args):
     In this order:
     class, instance, title.
     """
-    if args.command is None:
+    if not args.command:
         if args.wm_class:
             args.command = verify_app(parser, args.wm_class.lower())
         elif args.wm_instance:
