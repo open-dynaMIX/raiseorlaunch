@@ -110,29 +110,6 @@ def parse_arguments():
     return config
 
 
-def do_focus(config):
-    """
-    Do the focussing of the window.
-    """
-    if config.ignore_case:
-        if config.wm_class:
-            config.wm_class = "(?i)" + config.wm_class
-        if config.wm_instance:
-            config.wm_instance = "(?i)" + config.wm_instance
-        if config.wm_title:
-            config.wm_title = "(?i)" + config.wm_title
-
-    focus_args = {}
-    if config.wm_class:
-        focus_args['Class'] = config.wm_class
-    if config.wm_instance:
-        focus_args['Instance'] = config.wm_instance
-    if config.wm_title:
-        focus_args['title'] = config.wm_title
-
-    i3.focus(**focus_args)
-
-
 def switch_ws(config):
     """
     Do the switching of the workspace.
@@ -227,7 +204,6 @@ def main():
         if is_running_id:
             current_ws_old = get_current_ws()
             i3.focus(con_id=is_running_id)
-            # do_focus(config)
             if current_ws_old == config.workspace:
                 switch_ws(config)
         else:
