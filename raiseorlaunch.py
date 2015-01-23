@@ -198,8 +198,8 @@ def get_current_ws():
 def main():
     config = parse_arguments()
 
+    is_running_id = is_running(config)
     if config.workspace:
-        is_running_id = is_running(config)
         if is_running_id:
             current_ws_old = get_current_ws()
             i3.focus(con_id=is_running_id)
@@ -210,7 +210,6 @@ def main():
                 switch_ws(config.workspace)
             run_command(config.command)
     else:
-        is_running_id = is_running(config)
         if is_running_id:
             current_ws_old = get_current_ws()
             i3.focus(con_id=is_running_id)
