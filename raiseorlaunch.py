@@ -137,7 +137,6 @@ def get_window_tree(workspace):
             for floatlist in subtree['floating_nodes']:
                 if floatlist['scratchpad_state'] == "none":
                     for float in floatlist['nodes']:
-                        float['scratch_id'] = "none"
                         tree.append(float)
                 else:
                     scratch_id = floatlist['id']
