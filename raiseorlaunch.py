@@ -208,7 +208,6 @@ def main():
     config = parse_arguments()
 
     is_running_ret = is_running(config)
-    print is_running_ret[0]
     if config.workspace:
         if is_running_ret[0]:
             current_ws_old = get_current_ws()
