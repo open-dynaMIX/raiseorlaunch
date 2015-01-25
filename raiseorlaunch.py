@@ -154,7 +154,7 @@ def is_running(config):
     """
     tree = get_window_tree(config.workspace)
     if not tree:
-        return False
+        return False, None
 
     # Iterate over the windows
     for window in tree:
@@ -186,7 +186,7 @@ def is_running(config):
             if 'scratch_id' not in window:
                 window['scratch_id'] = None
             return window['window'], window['scratch_id']
-    return False
+    return False, None
 
 
 def run_command(command):
