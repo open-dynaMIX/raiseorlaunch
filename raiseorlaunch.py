@@ -135,8 +135,16 @@ def get_window_tree(workspace):
         tree = i3.filter(nodes=[])
         for subtree in tree:
             for floatlist in subtree['floating_nodes']:
-                for float in floatlist['nodes']:
-                    tree.append(float)
+                if floatlist['scratchpad_state'] == "none":
+                    for float in floatlist['nodes']:
+                        float['scratch_id'] = "none"
+                        tree.append(float)
+                else:
+                    scratch_id = floatlist['id']
+                    print scratch_id
+                    for float in floatlist['nodes']:
+                        float['scratch_id'] = scratch_id
+                        tree.append(float)
     return tree
 
 
@@ -175,7 +183,9 @@ def is_running(config):
             if config.wm_title:
                 if config.wm_title not in wm_title:
                     continue
-            return window['window']
+            if 'scratch_id' not in window:
+                window['scratch_id'] = None
+            return window['window'], window['scratch_id']
     return False
 
 
@@ -198,11 +208,12 @@ def get_current_ws():
 def main():
     config = parse_arguments()
 
-    is_running_id = is_running(config)
+    is_running_ret = is_running(config)
+    print is_running_ret[0]
     if config.workspace:
-        if is_running_id:
+        if is_running_ret[0]:
             current_ws_old = get_current_ws()
-            i3.focus(id=is_running_id)
+            i3.focus(id=is_running_ret[0])
             if current_ws_old == config.workspace:
                 switch_ws(config.workspace)
         else:
@@ -210,10 +221,10 @@ def main():
                 switch_ws(config.workspace)
             run_command(config.command)
     else:
-        if is_running_id:
+        if is_running_ret[0]:
             current_ws_old = get_current_ws()
-            i3.focus(id=is_running_id)
-            if current_ws_old == get_current_ws():
+            i3.focus(id=is_running_ret[0])
+            if current_ws_old == get_current_ws() and not is_running_ret[1]:
                 switch_ws(current_ws_old)
         else:
             run_command(config.command)
