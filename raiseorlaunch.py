@@ -82,6 +82,9 @@ def parse_arguments():
                               help="Workspace to use.")
     parser.set_defaults(workspace=None)
 
+    parser.add_argument("-r", "--scratch", dest="scratch",
+                              action="store_true", help="Use scratchpad")
+
     parser.add_argument("-e", "--exec", dest="command",
                               help="Command to execute. If omitted, -c, -s or "
                               "-t will be used (lower-case). "
@@ -140,7 +143,6 @@ def get_window_tree(workspace):
                         tree.append(float)
                 else:
                     scratch_id = floatlist['id']
-                    print scratch_id
                     for float in floatlist['nodes']:
                         float['scratch_id'] = scratch_id
                         tree.append(float)
@@ -204,6 +206,19 @@ def get_current_ws():
             return ws['name']
 
 
+def compile_scratch_props(config):
+    returnstr = "["
+    if config.wm_class:
+        returnstr += "class=" + config.wm_class
+    if config.wm_instance:
+        returnstr += ", instance=" + config.wm_instance
+    if config.wm_title:
+        returnstr += ", title=" + config.wm_title
+    returnstr += "]"
+
+    return returnstr
+
+
 def main():
     config = parse_arguments()
 
@@ -222,10 +237,19 @@ def main():
         if is_running_ret[0]:
             current_ws_old = get_current_ws()
             i3.focus(id=is_running_ret[0])
-            if current_ws_old == get_current_ws() and not is_running_ret[1]:
-                switch_ws(current_ws_old)
+            if current_ws_old == get_current_ws()and not is_running_ret[1]:
+                if config.scratch:
+                    i3.command(compile_scratch_props(config), 'scratchpad',
+                               'show')
+                else:
+                    switch_ws(current_ws_old)
         else:
             run_command(config.command)
+            if config.scratch:
+                i3.command(compile_scratch_props(config), 'move',
+                           'scratchpad')
+                i3.command(compile_scratch_props(config), 'scratchpad',
+                           'show')
 
 
 if __name__ == "__main__":
