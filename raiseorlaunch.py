@@ -65,6 +65,8 @@ def check_args(parser, args):
     """
     if not args.wm_class and not args.wm_instance and not args.wm_title:
         parser.error("You need to specify one argument out of -c, -s or -t.")
+    if args.scratch and args.workspace:
+        parser.error("You cannot use the scratchpad on a specific workspace.")
 
 
 def parse_arguments():
