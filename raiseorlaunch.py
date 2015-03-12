@@ -235,13 +235,12 @@ def main():
             run_command(config.command)
     else:
         if is_running_ret[0]:
-            current_ws_old = get_current_ws()
-            i3.focus(id=is_running_ret[0])
-            if current_ws_old == get_current_ws()and not is_running_ret[1]:
-                if config.scratch:
-                    i3.command(compile_scratch_props(config), 'scratchpad',
-                               'show')
-                else:
+            if config.scratch:
+                i3.command(compile_scratch_props(config), 'scratchpad', 'show')
+            else:
+                current_ws_old = get_current_ws()
+                i3.focus(id=is_running_ret[0])
+                if current_ws_old == get_current_ws()and not is_running_ret[1]:
                     switch_ws(current_ws_old)
         else:
             run_command(config.command)
