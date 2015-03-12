@@ -22,28 +22,27 @@ Invocation
 ### Usage
 
 ```
-raiseorlaunch [-h] [-i] [-w WORKSPACE] [-e COMMAND]
-[-c WM_CLASS] [-s WM_INSTANCE] [-t WM_TITLE]
+raiseorlaunch.py [-h] [-i] [-w WORKSPACE] [-r] [-e COMMAND]
+                 [-c WM_CLASS] [-s WM_INSTANCE] [-t WM_TITLE]
+
 ```
 ### Options
 
 
 ```
--h, --help
-        show this help message and exit
--i, --ignore-case
-        Ignore case.
+-h, --help            show this help message and exit
+-i, --ignore-case     Ignore case.
 -w WORKSPACE, --workspace WORKSPACE
-        Workspace to use.
+                      Workspace to use.
+-r, --scratch         Use scratchpad
 -e COMMAND, --exec COMMAND
-        Command to execute. If omitted, -c, -s
-        or -t will be used (lower-case).
-        Careful: The command will not be
-        checked prior to execution!
+                      Command to execute. If omitted, -c, -s or -t will be
+                      used (lower-case). Careful: The command will not be
+                      checked prior to execution!
 -c WM_CLASS, --class WM_CLASS
-        The window class.
+                      The window class.
 -s WM_INSTANCE, --instance WM_INSTANCE
-        The window instance.
+                      The window instance.
 -t WM_TITLE, --title WM_TITLE
-        The window title.
+                      The window title.
 ```
