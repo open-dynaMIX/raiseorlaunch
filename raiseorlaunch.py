@@ -13,6 +13,7 @@ import os
 from distutils import spawn
 import sys
 from subprocess import call
+from time import sleep
 try:
     import i3
 except ImportError:
@@ -247,6 +248,7 @@ def main():
         else:
             run_command(config.command)
             if config.scratch:
+                sleep(0.5)
                 i3.command(compile_scratch_props(config), 'move',
                            'scratchpad')
                 i3.command(compile_scratch_props(config), 'scratchpad',
