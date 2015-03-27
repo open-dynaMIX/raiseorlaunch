@@ -12,7 +12,7 @@ import argparse
 import os
 from distutils import spawn
 import sys
-from subprocess import call
+from subprocess import Popen
 from time import sleep
 try:
     import i3
@@ -197,7 +197,7 @@ def run_command(command):
     """
     Run the specified command.
     """
-    call(command, shell=True)
+    Popen(command, shell=True)
 
 
 def get_current_ws():
