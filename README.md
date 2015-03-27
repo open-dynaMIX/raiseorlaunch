@@ -1,11 +1,11 @@
 # raiseorlaunch
 
 Run-or-raise-application-launcher for i3 window manager.
-If a specified application is already running, it will just focus the window.
+If a specified application is already running, it will just focus the window.  
 Else it will run the application.
 
 It's also possible to specify a workspace. That way only this workspace will
-be used to raise or launch.
+be used to raise or launch.  
 workspace_auto_back_and_forth will still work.  
 That's also possible with the scratchpad.
 
