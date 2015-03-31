@@ -248,7 +248,7 @@ def main():
         else:
             run_command(config.command)
             if config.scratch:
-                sleep(0.5)
+                sleep(1.5)
                 i3.command(compile_scratch_props(config), 'move',
                            'scratchpad')
                 i3.command(compile_scratch_props(config), 'scratchpad',
