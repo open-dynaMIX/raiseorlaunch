@@ -205,7 +205,7 @@ def get_current_ws():
     Get the current workspace name.
     """
     for ws in i3.get_workspaces():
-        if ws['visible']:
+        if ws['focused']:
             return ws['name']
 
 
