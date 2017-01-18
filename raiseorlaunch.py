@@ -176,7 +176,10 @@ def is_running(config):
             else:
                 wm_class = window['window_properties']['class']
                 wm_instance = window['window_properties']['instance']
-                wm_title = window['window_properties']['title']
+                if 'title' in window['window_properties']:
+                    wm_title = window['window_properties']['title']
+                else:
+                    wm_title = None
 
             if config.wm_class:
                 if config.wm_class not in wm_class:
