@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# """
-# Run-or-raise-application-launcher for i3 window manager.
-# Depends on: python-i3-py or python2-i3-py respectively
-# """
+"""
+Run-or-raise-application-launcher for i3 window manager.
+"""
 
 from __future__ import print_function
 import sys
@@ -18,6 +17,9 @@ try:
 except ImportError:
     print("\033[31;1mError: Module i3 not found.\033[0m", file=sys.stderr)
     sys.exit(1)
+
+
+description = 'Run-or-raise-application-launcher for i3 window manager.'
 
 
 def verify_app(parser, application):
@@ -52,6 +54,8 @@ def set_command(parser, args):
             args.command = verify_app(parser, args.wm_instance.lower())
         elif args.wm_title:
             args.command = verify_app(parser, args.wm_titlef.lower())
+    else:
+        verify_app(parser, args.command.split(' ')[0])
     return args
 
 
@@ -69,7 +73,7 @@ def parse_arguments():
     """
     Parse all arguments.
     """
-    parser = argparse.ArgumentParser(description=sys.argv[0],
+    parser = argparse.ArgumentParser(description=description,
                                      formatter_class=argparse.
                                      RawDescriptionHelpFormatter)
 
