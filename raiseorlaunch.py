@@ -1,27 +1,22 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""
-raiseorlaunch 0.1:
-Run-or-raise-application-launcher for i3 window manager.
-Depends on: python2-i3-git
-"""
+# """
+# Run-or-raise-application-launcher for i3 window manager.
+# Depends on: python-i3-py or python2-i3-py respectively
+# """
 
-
+from __future__ import print_function
+import sys
 import argparse
 import os
 from distutils import spawn
-import sys
 from subprocess import Popen
 from time import sleep
 try:
     import i3
 except ImportError:
-    print >> sys.stderr, ("\033[31;1mError: Module i3 not found. Please "
-                          "install the package 'python2-i3-git'.\nMaybe this "
-                          "package is called differently in your distribution."
-                          "\nOr use i3-py from pip2."
-                          " \033[0m")
+    print("\033[31;1mError: Module i3 not found.\033[0m", file=sys.stderr)
     sys.exit(1)
 
 
@@ -166,7 +161,10 @@ def is_running(config):
             if config.ignore_case:
                 wm_class = window['window_properties']['class'].lower()
                 wm_instance = window['window_properties']['instance'].lower()
-                wm_title = window['window_properties']['title'].lower()
+                if 'title' in window['window_properties']:
+                    wm_title = window['window_properties']['title'].lower()
+                else:
+                    wm_title = None
                 if config.wm_class:
                     config.wm_class = config.wm_class.lower()
                 if config.wm_instance:
