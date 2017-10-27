@@ -1,19 +1,19 @@
 # raiseorlaunch
 
 Run-or-raise-application-launcher for i3 window manager.  
-If a specified application is already running, it will just focus the window.  
-Else it will run the application.
+If a specified application is already running, it will just focus the window. 
+If not, it will run the application.
 
 It's also possible to specify a workspace. That way only this workspace will
 be used to raise and launch.  
-workspace_auto_back_and_forth will still work.  
+workspace_auto_back_and_forth - if enabled - remains functional.  
 It's also possible to use the scratchpad.
 
 You can specify a window class, instance and/or title.
 
 raiseorlaunch is intended to be used with i3-shortcuts.
 
-It depends on i3-py (https://github.com/ziberna/i3-py)
+It depends on [i3-py](https://github.com/ziberna/i3-py)
 
 
 ## Usage and options
