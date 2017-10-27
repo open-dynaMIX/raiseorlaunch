@@ -34,7 +34,6 @@ setup(
     ],
     keywords='i3 run-or-raise launcher navigation',
     install_requires=['i3-py'],
-    package_data={'': ['LICENSE', 'README.md']},
     py_modules=['raiseorlaunch'],
     entry_points={
         'console_scripts': [
