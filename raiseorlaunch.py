@@ -5,7 +5,17 @@
 Run-or-raise-application-launcher for i3 window manager.
 """
 
+
 from __future__ import print_function
+
+
+__title__ = 'raiseorlaunch'
+__description__ = 'Run-or-raise-application-launcher for i3 window manager.'
+__version__ = '0.1.0'
+__license__ = 'MIT'
+__author__ = 'Fabio Rämi'
+
+
 import sys
 import argparse
 import os
@@ -17,9 +27,6 @@ try:
 except ImportError:
     print("\033[31;1mError: Module i3 not found.\033[0m", file=sys.stderr)
     sys.exit(1)
-
-
-description = 'Run-or-raise-application-launcher for i3 window manager.'
 
 
 def verify_app(parser, application):
@@ -73,46 +80,49 @@ def parse_arguments():
     """
     Parse all arguments.
     """
-    parser = argparse.ArgumentParser(description=description,
+    parser = argparse.ArgumentParser(description=__description__,
                                      formatter_class=argparse.
                                      RawDescriptionHelpFormatter)
 
     parser.add_argument("-i", "--ignore-case", dest="ignore_case",
-                              action="store_true", help="Ignore case.")
+                        action="store_true", help="ignore case.")
 
     parser.add_argument("-w", "--workspace", dest="workspace",
-                              help="Workspace to use.")
+                        help="workspace to use.")
     parser.set_defaults(workspace=None)
 
     parser.add_argument("-r", "--scratch", dest="scratch",
-                              action="store_true", help="Use scratchpad")
+                        action="store_true", help="use scratchpad")
 
     parser.add_argument("-e", "--exec", dest="command",
-                              help="Command to execute. If omitted, -c, -s or "
-                              "-t will be used (lower-case). "
-                              "Careful: The command will not be checked "
-                              "prior to execution!")
+                        help="command to execute. If omitted, -c, -s or "
+                        "-t will be used (lower-case). "
+                        "Careful: The command will not be checked "
+                        "prior to execution!")
     parser.set_defaults(command=None)
 
     parser.add_argument("-c", "--class", dest="wm_class",
-                              help="The window class.")
-    parser.set_defaults(wm_class=None)
+                              help="the window class.")
+    parser.set_defaults(wm_class='')
 
     parser.add_argument("-s", "--instance", dest="wm_instance",
-                              help="The window instance.")
-    parser.set_defaults(wm_instance=None)
+                        help="the window instance.")
+    parser.set_defaults(wm_instance='')
 
     parser.add_argument("-t", "--title", dest="wm_title",
-                              help="The window title.")
-    parser.set_defaults(wm_title=None)
+                        help="the window title.")
+    parser.set_defaults(wm_title='')
+
+    parser.add_argument('--version', action='version',
+                        version=__version__)
 
     args = parser.parse_args()
 
     check_args(parser, args)
 
-    config = set_command(parser, args)
+    args = set_command(parser, args)
 
-    return config
+    return args
 
 
 def switch_ws(workspace):
@@ -151,51 +161,62 @@ def get_window_tree(workspace):
     return tree
 
 
-def is_running(config):
+def compare_running(c_wm_class, wm_class,
+                    c_wm_instance, wm_instance,
+                    c_wm_title, wm_title,
+                    ignore_case):
+    if ignore_case:
+        c_wm_class = c_wm_class.lower()
+        wm_class = wm_class.lower()
+        c_wm_instance = c_wm_instance.lower()
+        wm_instance = wm_instance.lower()
+        c_wm_title = c_wm_title.lower()
+        wm_title = wm_title.lower()
+
+    if c_wm_class:
+        if not c_wm_class == wm_class:
+            return False
+    if c_wm_instance:
+        if not c_wm_instance == wm_instance:
+            return False
+    if c_wm_title:
+        if not c_wm_title == wm_title:
+            return False
+    return True
+
+
+def get_running_ids(args):
     """
     Check if application is running on the (maybe) given workspace.
     """
-    tree = get_window_tree(config.workspace)
+    running = {'id': None, 'scratch_id': None, 'focused': None}
+    tree = get_window_tree(args.workspace)
     if not tree:
-        return [False]
+        return running
 
     # Iterate over the windows
     for window in tree:
         if 'window_properties' in window:
-            if config.ignore_case:
-                wm_class = window['window_properties']['class'].lower()
-                wm_instance = window['window_properties']['instance'].lower()
-                if 'title' in window['window_properties']:
-                    wm_title = window['window_properties']['title'].lower()
-                else:
-                    wm_title = None
-                if config.wm_class:
-                    config.wm_class = config.wm_class.lower()
-                if config.wm_instance:
-                    config.wm_instance = config.wm_instance.lower()
-                if config.wm_title:
-                    config.wm_title = config.wm_title.lower()
+            wm_class = window['window_properties']['class']
+            wm_instance = window['window_properties']['instance']
+            if 'title' in window['window_properties']:
+                wm_title = window['window_properties']['title']
             else:
-                wm_class = window['window_properties']['class']
-                wm_instance = window['window_properties']['instance']
-                if 'title' in window['window_properties']:
-                    wm_title = window['window_properties']['title']
-                else:
-                    wm_title = None
+                wm_title = ''
 
-            if config.wm_class:
-                if config.wm_class not in wm_class:
-                    continue
-            if config.wm_instance:
-                if config.wm_instance not in wm_instance:
-                    continue
-            if config.wm_title:
-                if config.wm_title not in wm_title:
-                    continue
-            if 'scratch_id' not in window:
-                window['scratch_id'] = None
-            return window['window'], window['scratch_id']
-    return [False]
+            if not compare_running(args.wm_class, wm_class,
+                                   args.wm_instance, wm_instance,
+                                   args.wm_title, wm_title,
+                                   args.ignore_case):
+                continue
+
+            if 'scratch_id' in window:
+                running['scratch_id'] = window['scratch_id']
+
+            running['id'] = window['window']
+            running['focused'] = window['focused']
+
+    return running
 
 
 def run_command(command):
@@ -214,49 +235,45 @@ def get_current_ws():
             return ws['name']
 
 
-def compile_scratch_props(config):
-    returnstr = "["
-    if config.wm_class:
-        returnstr += "class=" + config.wm_class
-    if config.wm_instance:
-        returnstr += ", instance=" + config.wm_instance
-    if config.wm_title:
-        returnstr += ", title=" + config.wm_title
-    returnstr += "]"
-
-    return returnstr
-
-
 def main():
-    config = parse_arguments()
+    args = parse_arguments()
 
-    is_running_ret = is_running(config)
-    if config.workspace:
-        if is_running_ret[0]:
+    running = get_running_ids(args)
+    if args.workspace:
+        if running['id']:
             current_ws_old = get_current_ws()
-            i3.focus(id=is_running_ret[0])
-            if current_ws_old == config.workspace:
-                switch_ws(config.workspace)
+
+            if not running['focused']:
+                i3.focus(id=running['id'])
+            else:
+                if current_ws_old == args.workspace:
+                    switch_ws(args.workspace)
         else:
-            if not get_current_ws() == config.workspace:
-                switch_ws(config.workspace)
-            run_command(config.command)
+            if not get_current_ws() == args.workspace:
+                switch_ws(args.workspace)
+            run_command(args.command)
     else:
-        if is_running_ret[0]:
-            if config.scratch:
-                i3.command(compile_scratch_props(config), 'scratchpad', 'show')
+        if running['id']:
+            if args.scratch:
+                i3.command('[id={}]'.format(running['id']),
+                           'scratchpad',
+                           'show')
             else:
                 current_ws_old = get_current_ws()
-                i3.focus(id=is_running_ret[0])
-                if current_ws_old == get_current_ws()and not is_running_ret[1]:
-                    switch_ws(current_ws_old)
+                if not running['focused']:
+                    i3.focus(id=running['id'])
+                else:
+                    if current_ws_old == get_current_ws():
+                        if not running['scratch_id']:
+                            switch_ws(current_ws_old)
         else:
-            run_command(config.command)
-            if config.scratch:
+            run_command(args.command)
+            if args.scratch:
                 sleep(1.5)
-                i3.command(compile_scratch_props(config), 'move',
+                running = get_running_ids(args)
+                i3.command('[id={}]'.format(running['id']), 'move',
                            'scratchpad')
-                i3.command(compile_scratch_props(config), 'scratchpad',
+                i3.command('[id={}]'.format(running['id']), 'scratchpad',
                            'show')
 
 
