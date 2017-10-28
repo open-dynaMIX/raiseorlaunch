@@ -81,6 +81,3 @@ This uses the workspace SL for sublime text.
     raiseorlaunch -r -c SpeedCrunch
 
 Here we raise or launch SpeedCrunch and use the scratchpad.
-
-.. |Latest Version| image:: https://pypip.in/version/raiseorlaunch/badge.svg
-   :target: https://pypi.python.org/pypi/raiseorlaunch/
