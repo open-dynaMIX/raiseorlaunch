@@ -185,7 +185,8 @@ class Raiseorlaunch(RolBase):
         Search for running window that matches provided properties
         and act accordingly.
         """
-        running = self._get_running_ids(self._get_window_tree())
+        tree = self._get_window_tree()
+        running = self._get_running_ids(tree)
         if running['id']:
             if self.scratch:
                 i3.command('[id={}]'.format(running['id']),
@@ -234,7 +235,8 @@ class RaiseorlaunchWorkspace(RolBase):
         Search for running window that matches provided properties
         and act accordingly.
         """
-        running = self._get_running_ids(self._get_window_tree())
+        tree = self._get_window_tree()
+        running = self._get_running_ids(tree)
         if running['id']:
             current_ws_old = self._get_current_ws()
 
