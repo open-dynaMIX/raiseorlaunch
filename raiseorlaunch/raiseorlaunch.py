@@ -30,7 +30,8 @@ class RolBase(object):
     Base class for raiseorlaunch.
 
     Args:
-        command (str): The command to execute, if no matching window was found.
+        command (:obj:`list` of :obj:`str`): The command to execute, if no
+                                             matching window was found.
         wm_class (str, optional): The window class to look for.
         wm_instance (str, optional): The window instance to look for.
         wm_title (str, optional): The window title to look for.
@@ -51,15 +52,28 @@ class RolBase(object):
         self.wm_instance = wm_instance
         self.wm_title = wm_title
         self.ignore_case = ignore_case
+        self._check_args()
 
     def run(self):
+        """
+        Search for running window that matches provided properties
+        and act accordingly.
+        """
         raise NotImplementedError
 
-    def _run_command(self, command):
+    def _check_args(self):
+        """
+        Verify that window properties are provided.
+        """
+        if not self.wm_class and not self.wm_instance and not self.wm_title:
+            raise TypeError('You need to specify '
+                            '"wm_class", "wm_instance", "wm_title.')
+
+    def _run_command(self):
         """
         Run the specified command.
         """
-        Popen(command, shell=True)
+        Popen(self.command)
 
     def _get_current_ws(self):
         """
@@ -90,6 +104,9 @@ class RolBase(object):
                          wm_class,
                          wm_instance,
                          wm_title):
+        """
+        Compare the properties of a running window with the ones provided.
+        """
         if self.ignore_case:
             c_wm_class = self.wm_class.lower()
             wm_class = wm_class.lower()
@@ -164,6 +181,10 @@ class Raiseorlaunch(RolBase):
         super(Raiseorlaunch, self).__init__(*args, **kwargs)
 
     def run(self):
+        """
+        Search for running window that matches provided properties
+        and act accordingly.
+        """
         running = self._get_running_ids(self._get_window_tree())
         if running['id']:
             if self.scratch:
@@ -179,7 +200,7 @@ class Raiseorlaunch(RolBase):
                         if not running['scratch_id']:
                             i3.command('workspace', current_ws_old)
         else:
-            self._run_command(self.command)
+            self._run_command()
             if self.scratch:
                 sleep(1.5)
                 running = self._get_running_ids(self._get_window_tree())
@@ -209,6 +230,10 @@ class RaiseorlaunchWorkspace(RolBase):
         super(RaiseorlaunchWorkspace, self).__init__(*args, **kwargs)
 
     def run(self):
+        """
+        Search for running window that matches provided properties
+        and act accordingly.
+        """
         running = self._get_running_ids(self._get_window_tree())
         if running['id']:
             current_ws_old = self._get_current_ws()
@@ -221,11 +246,11 @@ class RaiseorlaunchWorkspace(RolBase):
         else:
             if not self._get_current_ws() == self.workspace:
                 i3.command('workspace', self.workspace)
-            self._run_command(self.command)
+            self._run_command()
 
     def _get_window_tree(self):
         """
-        Get the current window tree.
+        Get the current window tree on the provided workspace.
         """
         temptree = i3.filter(name=self.workspace)
         if temptree == []:

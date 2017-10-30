@@ -21,7 +21,7 @@ def verify_app(parser, application):
         """
         Handle a verify_app error.
         """
-        parser.error("%s is not an executable!" % application)
+        parser.error('{} is not an executable!'.format(application))
 
     is_exe = spawn.find_executable(application)
     if not is_exe:
@@ -40,13 +40,16 @@ def set_command(parser, args):
     """
     if not args.command:
         if args.wm_class:
-            args.command = verify_app(parser, args.wm_class.lower())
+            args.command = args.wm_class.lower()
         elif args.wm_instance:
-            args.command = verify_app(parser, args.wm_instance.lower())
+            args.command = args.wm_instance.lower()
         elif args.wm_title:
-            args.command = verify_app(parser, args.wm_titlef.lower())
-    else:
-        verify_app(parser, args.command.split(' ')[0])
+            args.command = args.wm_titlef.lower()
+
+    args.command = args.command.split(' ')
+
+    verify_app(parser, args.command[0])
+
     return args
 
 
@@ -54,8 +57,6 @@ def check_args(parser, args):
     """
     Verify that at least one argument is given.
     """
-    if not args.wm_class and not args.wm_instance and not args.wm_title:
-        parser.error("You need to specify one argument out of -c, -s or -t.")
     if args.scratch and args.workspace:
         parser.error("You cannot use the scratchpad on a specific workspace.")
 
@@ -107,28 +108,36 @@ def parse_arguments():
 
     args = set_command(parser, args)
 
-    return args
+    return args, parser
 
 
 def main():
-    args = parse_arguments()
+    args, parser = parse_arguments()
 
-    if not args.workspace:
-        rol = Raiseorlaunch(args.command,
-                            args.wm_class,
-                            args.wm_instance,
-                            args.wm_title,
-                            args.ignore_case,
-                            scratch=args.scratch)
-        rol.run()
-    else:
-        rol = RaiseorlaunchWorkspace(args.command,
-                                     args.wm_class,
-                                     args.wm_instance,
-                                     args.wm_title,
-                                     args.ignore_case,
-                                     workspace=args.workspace)
-        rol.run()
+    try:
+        if not args.workspace:
+            rol = Raiseorlaunch(command=args.command,
+                                wm_class=args.wm_class,
+                                wm_instance=args.wm_instance,
+                                wm_title=args.wm_title,
+                                ignore_case=args.ignore_case,
+                                scratch=args.scratch)
+        else:
+            rol = RaiseorlaunchWorkspace(command=args.command,
+                                         wm_class=args.wm_class,
+                                         wm_instance=args.wm_instance,
+                                         wm_title=args.wm_title,
+                                         ignore_case=args.ignore_case,
+                                         workspace=args.workspace)
+    except TypeError as e:
+        if str(e) == ('You need to specify '
+                      '"wm_class", "wm_instance", "wm_title.'):
+            parser.error('You need to specify one argument out '
+                         'of -c, -s or -t.')
+        else:
+            raise
+
+    rol.run()
 
 
 if __name__ == "__main__":
