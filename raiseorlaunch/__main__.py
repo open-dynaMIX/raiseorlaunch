@@ -46,6 +46,9 @@ def set_command(parser, args):
         elif args.wm_title:
             args.command = args.wm_titlef.lower()
 
+    if not args.command:
+        parser.error('No executable provided!')
+
     args.command = args.command.split(' ')
 
     verify_app(parser, args.command[0])
