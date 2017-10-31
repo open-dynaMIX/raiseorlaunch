@@ -86,9 +86,9 @@ Here we raise or launch SpeedCrunch and use the scratchpad.
 Known problems
 --------------
 
-Keybinds steal focus when fired. This can have a negative impact with
+| Keybinds steal focus when fired. This can have a negative impact with
   applications that listen to FocusOut events and hide.
 
 | Example:
-| When using Guake Terminal with "Hide on lose focus" enabled, raiseorlaunch
+  When using Guake Terminal with "Hide on lose focus" enabled, raiseorlaunch
   behaves as if the undelying window is focused.
