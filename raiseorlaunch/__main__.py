@@ -49,9 +49,9 @@ def set_command(parser, args):
     if not args.command:
         parser.error('No executable provided!')
 
-    args.command = args.command.split(' ')
+    args.command = args.command
 
-    verify_app(parser, args.command[0])
+    verify_app(parser, args.command.split(' ')[0])
 
     return args
 

@@ -30,8 +30,7 @@ class RolBase(object):
     Base class for raiseorlaunch.
 
     Args:
-        command (:obj:`list` of :obj:`str`): The command to execute, if no
-                                             matching window was found.
+        command (str): The command to execute, if no matching window was found.
         wm_class (str, optional): The window class to look for.
         wm_instance (str, optional): The window instance to look for.
         wm_title (str, optional): The window title to look for.
@@ -73,7 +72,7 @@ class RolBase(object):
         """
         Run the specified command.
         """
-        Popen(self.command)
+        Popen(self.command, shell=True)
 
     def _get_current_ws(self):
         """
