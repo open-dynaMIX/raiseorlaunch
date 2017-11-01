@@ -105,15 +105,18 @@ class RolBase(object):
                 props = self._compile_props_dict(item,
                                                  item['scratchpad_state'])
                 self.windows.append(props)
+            if 'nodes' in item:
+                self._get_window_properties(item['nodes'])
             if 'floating_nodes' in item:
                 for floating in item['floating_nodes']:
-                    self._get_window_properties(floating['nodes'])
+                    if 'nodes' in floating:
+                        self._get_window_properties(floating['nodes'])
 
     def _get_window_tree(self):
         """
         Get the current window tree.
         """
-        return i3.filter(nodes=[])
+        return i3.filter()
 
     def _compare_running(self, window):
         """
@@ -250,4 +253,4 @@ class RaiseorlaunchWorkspace(RolBase):
         """
         Get the current window tree on the provided workspace.
         """
-        return i3.filter(nodes=[], name=self.workspace)
+        return i3.filter(name=self.workspace)
