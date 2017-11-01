@@ -108,9 +108,7 @@ class RolBase(object):
             if 'nodes' in item:
                 self._get_window_properties(item['nodes'])
             if 'floating_nodes' in item:
-                for floating in item['floating_nodes']:
-                    if 'nodes' in floating:
-                        self._get_window_properties(floating['nodes'])
+                self._get_window_properties(item['floating_nodes'])
 
     def _get_window_tree(self):
         """
