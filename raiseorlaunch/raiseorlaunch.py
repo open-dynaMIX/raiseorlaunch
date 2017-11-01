@@ -51,6 +51,7 @@ class RolBase(object):
         self.wm_instance = wm_instance
         self.wm_title = wm_title
         self.ignore_case = ignore_case
+        self.windows = []
         self._check_args()
 
     def run(self):
@@ -82,81 +83,79 @@ class RolBase(object):
             if ws['focused']:
                 return ws['name']
 
+    def _compile_props_dict(self, win, scratch):
+        if scratch == 'none':
+            scratch = False
+        else:
+            scratch = True
+        result = {'id': win['window'],
+                  'wm_class': win['window_properties']['class'],
+                  'wm_instance': win['window_properties']['instance'],
+                  'wm_title': win['window_properties']['title'],
+                  'focused': win['focused'],
+                  'scratch': scratch}
+        if self.ignore_case:
+            for i in ['wm_class', 'wm_instance', 'wm_title']:
+                result[i] = result[i].lower()
+        return result
+
+    def _get_window_properties(self, tree):
+        for item in tree:
+            if item['window']:
+                props = self._compile_props_dict(item,
+                                                 item['scratchpad_state'])
+                self.windows.append(props)
+            if 'floating_nodes' in item:
+                for floating in item['floating_nodes']:
+                    self._get_window_properties(floating['nodes'])
+
     def _get_window_tree(self):
         """
         Get the current window tree.
         """
-        tree = i3.filter(nodes=[])
-        for subtree in tree:
-            for floatlist in subtree['floating_nodes']:
-                if floatlist['scratchpad_state'] == "none":
-                    for float in floatlist['nodes']:
-                        tree.append(float)
-                else:
-                    scratch_id = floatlist['id']
-                    for float in floatlist['nodes']:
-                        float['scratch_id'] = scratch_id
-                        tree.append(float)
-        return tree
+        return i3.filter(nodes=[])
 
-    def _compare_running(self,
-                         wm_class,
-                         wm_instance,
-                         wm_title):
+    def _compare_running(self, window):
         """
         Compare the properties of a running window with the ones provided.
         """
-        if self.ignore_case:
-            c_wm_class = self.wm_class.lower()
-            wm_class = wm_class.lower()
-            c_wm_instance = self.wm_instance.lower()
-            wm_instance = wm_instance.lower()
-            c_wm_title = self.wm_title.lower()
-            wm_title = wm_title.lower()
-        else:
-            c_wm_class = self.wm_class
-            c_wm_instance = self.wm_instance
-            c_wm_title = self.wm_title
+        c_wm_class = (self.wm_class.lower() if self.ignore_case
+                      else self.wm_class)
+        c_wm_instance = (self.wm_instance.lower() if self.ignore_case
+                         else self.wm_instance)
+        c_wm_title = (self.wm_title.lower() if self.ignore_case
+                      else self.wm_title)
 
         if c_wm_class:
-            if not c_wm_class == wm_class:
+            if not c_wm_class == window['wm_class']:
                 return False
         if c_wm_instance:
-            if not c_wm_instance == wm_instance:
+            if not c_wm_instance == window['wm_instance']:
                 return False
         if c_wm_title:
-            if not c_wm_title == wm_title:
+            if not c_wm_title == window['wm_title']:
                 return False
         return True
 
-    def _get_running_ids(self, tree):
+    def _get_properties_of_running_app(self):
         """
         Check if application is running on the (maybe) given workspace.
         """
-        running = {'id': None, 'scratch_id': None, 'focused': None}
-        if not tree:
+        tree = self._get_window_tree()
+        self._get_window_properties(tree)
+        running = {'id': None, 'scratch': None, 'focused': None}
+        if not self.windows:
             return running
 
         # Iterate over the windows
-        for window in tree:
-            if 'window_properties' in window:
-                wm_class = window['window_properties']['class']
-                wm_instance = window['window_properties']['instance']
-                if 'title' in window['window_properties']:
-                    wm_title = window['window_properties']['title']
-                else:
-                    wm_title = ''
+        for window in self.windows:
 
-                if not self._compare_running(wm_class,
-                                             wm_instance,
-                                             wm_title):
-                    continue
+            if not self._compare_running(window):
+                continue
 
-                if 'scratch_id' in window:
-                    running['scratch_id'] = window['scratch_id']
-
-                running['id'] = window['window']
-                running['focused'] = window['focused']
+            running['scratch'] = window['scratch']
+            running['id'] = window['id']
+            running['focused'] = window['focused']
 
         return running
 
@@ -184,8 +183,7 @@ class Raiseorlaunch(RolBase):
         Search for running window that matches provided properties
         and act accordingly.
         """
-        tree = self._get_window_tree()
-        running = self._get_running_ids(tree)
+        running = self._get_properties_of_running_app()
         if running['id']:
             if self.scratch:
                 i3.command('[id={}]'.format(running['id']),
@@ -203,7 +201,7 @@ class Raiseorlaunch(RolBase):
             self._run_command()
             if self.scratch:
                 sleep(1.5)
-                running = self._get_running_ids(self._get_window_tree())
+                running = self._get_properties_of_running_app()
                 i3.command('[id={}]'.format(running['id']), 'move',
                            'scratchpad')
                 i3.command('[id={}]'.format(running['id']), 'scratchpad',
@@ -234,8 +232,7 @@ class RaiseorlaunchWorkspace(RolBase):
         Search for running window that matches provided properties
         and act accordingly.
         """
-        tree = self._get_window_tree()
-        running = self._get_running_ids(tree)
+        running = self._get_properties_of_running_app()
         if running['id']:
             current_ws_old = self._get_current_ws()
 
@@ -253,11 +250,4 @@ class RaiseorlaunchWorkspace(RolBase):
         """
         Get the current window tree on the provided workspace.
         """
-        temptree = i3.filter(name=self.workspace)
-        if temptree == []:
-            return None
-        tree = i3.filter(tree=temptree, nodes=[])
-        for floatlist in temptree[0]['floating_nodes']:
-            for float in floatlist['nodes']:
-                tree.append(float)
-        return tree
+        return i3.filter(nodes=[], name=self.workspace)
