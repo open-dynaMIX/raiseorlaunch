@@ -67,7 +67,7 @@ class RolBase(object):
         """
         if not self.wm_class and not self.wm_instance and not self.wm_title:
             raise TypeError('You need to specify '
-                            '"wm_class", "wm_instance", "wm_title.')
+                            '"wm_class", "wm_instance" or "wm_title.')
 
     def _run_command(self):
         """

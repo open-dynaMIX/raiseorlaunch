@@ -134,8 +134,8 @@ def main():
                                          workspace=args.workspace)
     except TypeError as e:
         if str(e) == ('You need to specify '
-                      '"wm_class", "wm_instance", "wm_title.'):
-            parser.error('You need to specify one argument out '
+                      '"wm_class", "wm_instance" or "wm_title.'):
+            parser.error('You need to specify at least one argument out '
                          'of -c, -s or -t.')
         else:
             raise
