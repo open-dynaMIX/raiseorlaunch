@@ -235,12 +235,10 @@ class RaiseorlaunchWorkspace(RolBase):
         """
         running = self._get_properties_of_running_app()
         if running['id']:
-            current_ws_old = self._get_current_ws()
-
             if not running['focused']:
                 i3.focus(id=running['id'])
             else:
-                if current_ws_old == self.workspace:
+                if self._get_current_ws() == self.workspace:
                     i3.command('workspace', self.workspace)
         else:
             if not self._get_current_ws() == self.workspace:
