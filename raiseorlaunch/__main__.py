@@ -3,14 +3,18 @@
 
 """
 This is the CLI for raiseorlaunch. A run-or-raise-application-launcher
- for i3 window manager.
+for i3 window manager.
 """
 
 import os
 import argparse
 from distutils import spawn
+import logging
 from raiseorlaunch import (Raiseorlaunch, RaiseorlaunchWorkspace,
                            __title__, __version__, __description__)
+
+
+logger = logging.getLogger(__name__)
 
 
 def verify_app(parser, application):
@@ -45,9 +49,9 @@ def set_command(parser, args):
             args.command = args.wm_instance.lower()
         elif args.wm_title:
             args.command = args.wm_titlef.lower()
-
-    if not args.command:
-        parser.error('No executable provided!')
+        if not args.command:
+            parser.error('No executable provided!')
+        logger.debug('Set command to: {}'.format(args.command))
 
     args.command = args.command
 
@@ -61,7 +65,7 @@ def check_args(parser, args):
     Verify that at least one argument is given.
     """
     if args.scratch and args.workspace:
-        parser.error("You cannot use the scratchpad on a specific workspace.")
+        parser.error('You cannot use the scratchpad on a specific workspace.')
 
 
 def parse_arguments():
@@ -73,39 +77,46 @@ def parse_arguments():
                                      formatter_class=argparse.
                                      RawDescriptionHelpFormatter)
 
-    parser.add_argument("-i", "--ignore-case", dest="ignore_case",
-                        action="store_true", help="ignore case.")
+    parser.add_argument('-i', '--ignore-case', dest='ignore_case',
+                        action='store_true', help='ignore case.')
 
-    parser.add_argument("-w", "--workspace", dest="workspace",
-                        help="workspace to use.")
+    parser.add_argument('-w', '--workspace', dest='workspace',
+                        help='workspace to use.')
     parser.set_defaults(workspace=None)
 
-    parser.add_argument("-r", "--scratch", dest="scratch",
-                        action="store_true", help="use scratchpad")
+    parser.add_argument('-r', '--scratch', dest='scratch',
+                        action='store_true', help='use scratchpad')
 
-    parser.add_argument("-e", "--exec", dest="command",
-                        help="command to execute. If omitted, -c, -s or "
-                        "-t will be used (lower-case). "
-                        "Careful: The command will not be checked "
-                        "prior to execution!")
+    parser.add_argument('-e', '--exec', dest='command',
+                        help='command to execute. If omitted, -c, -s or '
+                        '-t will be used (lower-case). '
+                        'Careful: The command will not be checked '
+                        'prior to execution!')
     parser.set_defaults(command=None)
 
-    parser.add_argument("-c", "--class", dest="wm_class",
-                              help="the window class.")
+    parser.add_argument('-c', '--class', dest='wm_class',
+                              help='the window class.')
     parser.set_defaults(wm_class='')
 
-    parser.add_argument("-s", "--instance", dest="wm_instance",
-                        help="the window instance.")
+    parser.add_argument('-s', '--instance', dest='wm_instance',
+                        help='the window instance.')
     parser.set_defaults(wm_instance='')
 
-    parser.add_argument("-t", "--title", dest="wm_title",
-                        help="the window title.")
+    parser.add_argument('-t', '--title', dest='wm_title',
+                        help='the window title.')
     parser.set_defaults(wm_title='')
 
-    parser.add_argument('--version', action='version',
+    parser.add_argument('-d', '--debug', dest='debug',
+                        help='display debug messages.',
+                        action='store_true')
+
+    parser.add_argument('-v', '--version', action='version',
                         version=__version__)
 
     args = parser.parse_args()
+
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
 
     check_args(parser, args)
 
@@ -115,7 +126,12 @@ def parse_arguments():
 
 
 def main():
+    """
+    Main CLI function for raiseorlaunch.
+    """
     args, parser = parse_arguments()
+
+    logger.debug('Provided arguments: {}'.format(args))
 
     try:
         if not args.workspace:
@@ -134,7 +150,7 @@ def main():
                                          workspace=args.workspace)
     except TypeError as e:
         if str(e) == ('You need to specify '
-                      '"wm_class", "wm_instance" or "wm_title.'):
+                      '"wm_class", "wm_instance" or "wm_title".'):
             parser.error('You need to specify at least one argument out '
                          'of -c, -s or -t.')
         else:
@@ -143,5 +159,5 @@ def main():
     rol.run()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
