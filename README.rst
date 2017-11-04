@@ -95,4 +95,4 @@ Example:
 ********
 
 When using Guake Terminal with "Hide on lose focus" enabled, raiseorlaunch
-behaves as if the undelying window is focused.
+behaves as if the underlying window is focused.

@@ -78,15 +78,15 @@ def parse_arguments():
                                      RawDescriptionHelpFormatter)
 
     parser.add_argument('-c', '--class', dest='wm_class',
-                              help='the window class.')
+                              help='the window class')
     parser.set_defaults(wm_class='')
 
     parser.add_argument('-s', '--instance', dest='wm_instance',
-                        help='the window instance.')
+                        help='the window instance')
     parser.set_defaults(wm_instance='')
 
     parser.add_argument('-t', '--title', dest='wm_title',
-                        help='the window title.')
+                        help='the window title')
     parser.set_defaults(wm_title='')
 
     parser.add_argument('-e', '--exec', dest='command',
@@ -97,17 +97,17 @@ def parse_arguments():
     parser.set_defaults(command=None)
 
     parser.add_argument('-w', '--workspace', dest='workspace',
-                        help='workspace to use.')
+                        help='workspace to use')
     parser.set_defaults(workspace=None)
 
     parser.add_argument('-r', '--scratch', dest='scratch',
                         action='store_true', help='use scratchpad')
 
     parser.add_argument('-i', '--ignore-case', dest='ignore_case',
-                        action='store_true', help='ignore case.')
+                        action='store_true', help='ignore case when comparing')
 
     parser.add_argument('-d', '--debug', dest='debug',
-                        help='display debug messages.',
+                        help='display debug messages',
                         action='store_true')
 
     parser.add_argument('-v', '--version', action='version',
