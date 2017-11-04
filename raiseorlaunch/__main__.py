@@ -78,7 +78,7 @@ def parse_arguments():
                                      RawDescriptionHelpFormatter)
 
     parser.add_argument('-c', '--class', dest='wm_class',
-                              help='the window class')
+                        help='the window class')
     parser.set_defaults(wm_class='')
 
     parser.add_argument('-s', '--instance', dest='wm_instance',
