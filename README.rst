@@ -20,7 +20,7 @@ You can specify a window class, instance and/or title.
 
 raiseorlaunch is intended to be used with i3-shortcuts.
 
-It depends on `i3-py <https://github.com/ziberna/i3-py>`__
+It depends on `i3-py <https://github.com/ziberna/i3-py>`__.
 
 Installation
 ------------
