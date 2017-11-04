@@ -28,13 +28,15 @@ Installation
 Repositories
 ************
 
-raiseorlaunch is in `PyPI <https://pypi.python.org/pypi/raiseorlaunch/>`__, so you can just
+raiseorlaunch is in `PyPI <https://pypi.python.org/pypi/raiseorlaunch/>`__,
+so you can just
 
 ::
 
     pip install raiseorlaunch
 
-For Arch Linux users it's also available in the `AUR <https://aur.archlinux.org/packages/raiseorlaunch/>`__.
+For Arch Linux users it's also available in the
+`AUR <https://aur.archlinux.org/packages/raiseorlaunch/>`__.
 
 Manual
 ******
@@ -43,8 +45,8 @@ Installing it directly with the setup.py creates a script-entry-point that
 adds ~150ms delay. This is not acceptable for this kind of application.
 
 This can be prevented, if creating a wheel first and installing that (needs
-`wheel <https://pypi.python.org/pypi/wheel>`__ and `pip
-<https://pypi.python.org/pypi/pip>`__ installed):
+`wheel <https://pypi.python.org/pypi/wheel>`__ and
+`pip <https://pypi.python.org/pypi/pip>`__ installed):
 
 .. code:: shell
 
