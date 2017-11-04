@@ -24,6 +24,10 @@ It depends on `i3-py <https://github.com/ziberna/i3-py>`__.
 
 Installation
 ------------
+
+Repositories
+************
+
 raiseorlaunch is in `PyPI <https://pypi.python.org/pypi/raiseorlaunch/>`__, so you can just
 
 ::
@@ -32,6 +36,32 @@ raiseorlaunch is in `PyPI <https://pypi.python.org/pypi/raiseorlaunch/>`__, so y
 
 For Arch Linux users it's also available in the `AUR <https://aur.archlinux.org/packages/raiseorlaunch/>`__.
 
+Manual
+******
+
+Installing it directly with the setup.py creates a script-entry-point that
+adds ~150ms delay. This is not acceptable for this kind of application.
+
+This can be prevented, if creating a wheel first and installing that (needs
+`wheel <https://pypi.python.org/pypi/wheel>`__ and `pip
+<https://pypi.python.org/pypi/pip>`__ installed):
+
+.. code:: shell
+
+    python setup.py bdist_wheel
+    pip install ./dist/raiseorlaunch-${VERSION}-py2.py3-none-any.whl
+
+You can also just run the script without installing it:
+
+.. code:: shell
+
+    python -m raiseorlaunch ${OPTIONS}
+
+or:
+
+.. code:: shell
+
+    ./raiseorlaunch/__main__.py ${OPTIONS}
 
 Usage and options
 -----------------
