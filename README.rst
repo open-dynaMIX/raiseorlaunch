@@ -38,28 +38,29 @@ Usage and options
 
 ::
 
-    usage: raiseorlaunch [-h] [-i] [-w WORKSPACE] [-r] [-e COMMAND] [-c WM_CLASS]
-                         [-s WM_INSTANCE] [-t WM_TITLE] [--version]
+    usage: raiseorlaunch [-h] [-c WM_CLASS] [-s WM_INSTANCE] [-t WM_TITLE]
+                         [-e COMMAND] [-w WORKSPACE] [-r] [-i] [-d] [-v]
 
     Run-or-raise-application-launcher for i3 window manager.
 
     optional arguments:
       -h, --help            show this help message and exit
-      -i, --ignore-case     ignore case.
-      -w WORKSPACE, --workspace WORKSPACE
-                            workspace to use.
-      -r, --scratch         use scratchpad
-      -e COMMAND, --exec COMMAND
-                            command to execute. If omitted, -c, -s or -t will be
-                            used (lower-case). Careful: The command will not be
-                            checked prior to execution!
       -c WM_CLASS, --class WM_CLASS
                             the window class.
       -s WM_INSTANCE, --instance WM_INSTANCE
                             the window instance.
       -t WM_TITLE, --title WM_TITLE
                             the window title.
-      --version             show program's version number and exit
+      -e COMMAND, --exec COMMAND
+                            command to execute. If omitted, -c, -s or -t will be
+                            used (lower-case). Careful: The command will not be
+                            checked prior to execution!
+      -w WORKSPACE, --workspace WORKSPACE
+                            workspace to use.
+      -r, --scratch         use scratchpad
+      -i, --ignore-case     ignore case.
+      -d, --debug           display debug messages.
+      -v, --version         show program's version number and exit
 
 Examples
 --------
