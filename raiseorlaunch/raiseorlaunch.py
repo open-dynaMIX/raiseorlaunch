@@ -18,6 +18,7 @@ __author__ = 'Fabio Rämi'
 
 import sys
 from subprocess import Popen
+import abc
 from time import sleep
 import logging
 try:
@@ -28,9 +29,11 @@ except ImportError:
 
 
 logger = logging.getLogger(__name__)
+# compatible with Python 2 *and* 3:
+ABC = abc.ABCMeta('ABC', (object,), {'__slots__': ()})
 
 
-class RolBase(object):
+class RolBase(ABC):
     """
 
     Base class for raiseorlaunch.
@@ -60,12 +63,13 @@ class RolBase(object):
         self.windows = []
         self._check_args()
 
+    @abc.abstractmethod
     def run(self):
         """
         Search for running window that matches provided properties
         and act accordingly.
         """
-        raise NotImplementedError
+        pass
 
     def _check_args(self):
         """
