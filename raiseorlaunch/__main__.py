@@ -77,23 +77,6 @@ def parse_arguments():
                                      formatter_class=argparse.
                                      RawDescriptionHelpFormatter)
 
-    parser.add_argument('-i', '--ignore-case', dest='ignore_case',
-                        action='store_true', help='ignore case.')
-
-    parser.add_argument('-w', '--workspace', dest='workspace',
-                        help='workspace to use.')
-    parser.set_defaults(workspace=None)
-
-    parser.add_argument('-r', '--scratch', dest='scratch',
-                        action='store_true', help='use scratchpad')
-
-    parser.add_argument('-e', '--exec', dest='command',
-                        help='command to execute. If omitted, -c, -s or '
-                        '-t will be used (lower-case). '
-                        'Careful: The command will not be checked '
-                        'prior to execution!')
-    parser.set_defaults(command=None)
-
     parser.add_argument('-c', '--class', dest='wm_class',
                               help='the window class.')
     parser.set_defaults(wm_class='')
@@ -105,6 +88,23 @@ def parse_arguments():
     parser.add_argument('-t', '--title', dest='wm_title',
                         help='the window title.')
     parser.set_defaults(wm_title='')
+
+    parser.add_argument('-e', '--exec', dest='command',
+                        help='command to execute. If omitted, -c, -s or '
+                        '-t will be used (lower-case). '
+                        'Careful: The command will not be checked '
+                        'prior to execution!')
+    parser.set_defaults(command=None)
+
+    parser.add_argument('-w', '--workspace', dest='workspace',
+                        help='workspace to use.')
+    parser.set_defaults(workspace=None)
+
+    parser.add_argument('-r', '--scratch', dest='scratch',
+                        action='store_true', help='use scratchpad')
+
+    parser.add_argument('-i', '--ignore-case', dest='ignore_case',
+                        action='store_true', help='ignore case.')
 
     parser.add_argument('-d', '--debug', dest='debug',
                         help='display debug messages.',

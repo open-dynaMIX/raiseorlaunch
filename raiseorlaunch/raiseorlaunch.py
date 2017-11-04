@@ -61,6 +61,7 @@ class RolBase(ABC):
         self.wm_title = wm_title
         self.ignore_case = ignore_case
         self.windows = []
+
         self._check_args()
 
     @abc.abstractmethod
