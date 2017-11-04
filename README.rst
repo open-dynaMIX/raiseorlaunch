@@ -64,20 +64,34 @@ Usage and options
 Examples
 --------
 
-::
+.. code:: shell
 
     raiseorlaunch -c Firefox -s Navigator
 
 Run or raise Firefox.
 
-::
+.. code:: shell
 
     raiseorlaunch -w SL -c Sublime_text -s sublime_text -e subl
 
 This uses the workspace SL for sublime text.
 
-::
+.. code:: shell
 
     raiseorlaunch -r -c SpeedCrunch
 
 Here we raise or launch SpeedCrunch and use the scratchpad.
+
+
+Known problems
+--------------
+
+Keybinds steal focus when fired. This can have a negative impact with
+applications that listen to FocusOut events and hide. This is due to `how X
+works <https://github.com/i3/i3/issues/2843#issuecomment-316173601>`__.
+
+Example:
+********
+
+When using Guake Terminal with "Hide on lose focus" enabled, raiseorlaunch
+behaves as if the undelying window is focused.

@@ -17,8 +17,8 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='raiseorlaunch',
-    version='0.1.1',
-    description='Run-or-raise-application-launcher for i3 window manager.',
+    version='0.1.2',
+    description='A run-or-raise-application-launcher for i3 window manager.',
     long_description=long_description,
     url='https://github.com/open-dynaMIX/raiseorlaunch',
     author='Fabio Rämi',
@@ -26,7 +26,6 @@ setup(
     license='MIT',
     classifiers=[
         'Development Status :: 4 - Beta',
-        'Operating System :: POSIX :: Linux',
         'Intended Audience :: End Users/Desktop',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 2',
@@ -34,10 +33,10 @@ setup(
     ],
     keywords='i3 run-or-raise launcher navigation',
     install_requires=['i3-py'],
-    py_modules=['raiseorlaunch'],
+    packages=['raiseorlaunch'],
     entry_points={
         'console_scripts': [
-            'raiseorlaunch=raiseorlaunch:main',
+            'raiseorlaunch = raiseorlaunch.__main__:main',
         ],
     },
 )

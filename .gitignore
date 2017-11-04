@@ -15,3 +15,4 @@ pyenv.bak/
 # custom files
 test.py
 pyenv/
+pyenv27/
