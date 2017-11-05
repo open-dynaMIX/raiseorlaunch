@@ -41,9 +41,9 @@ class RolBase(ABC):
 
     Args:
         command (str): The command to execute, if no matching window was found.
-        wm_class (str, optional): The window class to look for (regex).
-        wm_instance (str, optional): The window instance to look for (regex).
-        wm_title (str, optional): The window title to look for (regex).
+        wm_class (str, optional): Regex for the the window class.
+        wm_instance (str, optional): Regex for the the window instance.
+        wm_title (str, optional): Regex for the the window title.
         ignore_case (bool, optional): Ignore case when comparing
                                       window-properties with provided
                                       arguments.
@@ -61,8 +61,10 @@ class RolBase(ABC):
         self.wm_instance = wm_instance
         self.wm_title = wm_title
         self.ignore_case = ignore_case
+
         self.windows = []
         self.regex_flags = []
+
         if self.ignore_case:
             self.regex_flags.append(re.IGNORECASE)
 
@@ -90,6 +92,59 @@ class RolBase(ABC):
         """
         logger.debug('Executing command: {}'.format(self.command))
         Popen(self.command, shell=True)
+
+    def _focus_window(self, win_id):
+        """
+        Focus window.
+
+        Args:
+            win_id (int): window id
+
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        logger.debug('Focusing window with id: {}'.format(id))
+        return i3.focus(id=win_id)[0]
+
+    def _switch_workspace(self, workspace):
+        """
+        Focus another workspace.
+
+        Args:
+            workspace (str): workspace
+
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        logger.debug('Switching to workspace: {}'.format(workspace))
+        return i3.command('workspace', workspace)[0]
+
+    def _show_scratch(self, win_id):
+        """
+        Show scratchpad window.
+
+        Args:
+            win_id (int): window id
+
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        logger.debug('Showing scratch window with id: {}'.format(win_id))
+        return i3.command('[id={}]'.format(win_id), 'scratchpad', 'show')[0]
+
+    def _move_scratch(self, win_id):
+        """
+        Move window to scratchpad.
+
+        Args:
+            win_id (int): window id
+
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        logger.debug('Moving newly created window with id: {} to the '
+                     'scratchpad.'.format(win_id))
+        return i3.command('[id={}]'.format(win_id), 'move', 'scratchpad')[0]
 
     def _get_current_ws(self):
         """
@@ -130,7 +185,7 @@ class RolBase(ABC):
                   'scratch': scratch}
         return result
 
-    def _get_window_properties(self, tree):
+    def _get_window_properties(self, tree, scratch=False):
         """
         Parses the i3 tree for nodes and appends them to 'self.windows'.
 
@@ -140,11 +195,12 @@ class RolBase(ABC):
         for item in tree:
             if item['window']:
                 props = self._compile_props_dict(item,
-                                                 item['scratchpad_state'])
+                                                 scratch)
                 logger.debug('Found window: {}'.format(props))
                 self.windows.append(props)
             if 'nodes' in item:
-                self._get_window_properties(item['nodes'])
+                self._get_window_properties(item['nodes'],
+                                            item['scratchpad_state'])
             if 'floating_nodes' in item:
                 self._get_window_properties(item['floating_nodes'])
 
@@ -201,7 +257,7 @@ class RolBase(ABC):
 
     def is_running(self):
         """
-        Convenience function to fetch the i3 tree, extract the window
+        Convenience method to fetch the i3 tree, extract the window
         properties and compare it with existing windows.
 
         Returns:
@@ -240,38 +296,28 @@ class Raiseorlaunch(RolBase):
         running = self.is_running()
         if running['id']:
             if self.scratch:
-                logger.debug('Showing scratch window with id: {}'
-                             .format(running['id']))
-                i3.command('[id={}]'.format(running['id']),
-                           'scratchpad',
-                           'show')
+                self._show_scratch(running['id'])
             else:
                 current_ws_old = self._get_current_ws()
                 if not running['focused']:
-                    logger.debug('Focusing window with id: {}'
-                                 .format(running['id']))
-                    i3.focus(id=running['id'])
+                    if not running['scratch']:
+                        self._focus_window(running['id'])
+                    else:
+                        self._show_scratch(running['id'])
                 else:
                     if current_ws_old == self._get_current_ws():
-                        if not running['scratch']:
-                            logger.debug('We\'re on the right workspace. '
-                                         'Switching anyway to retain '
-                                         'workspace_back_and_forth '
-                                         'functionality.')
-                            i3.command('workspace', current_ws_old)
+                        logger.debug('We\'re on the right workspace. '
+                                     'Switching anyway to retain '
+                                     'workspace_back_and_forth '
+                                     'functionality.')
+                        i3.command('workspace', current_ws_old)
         else:
             self._run_command()
             if self.scratch:
                 sleep(1.5)
                 running = self.is_running()
-                logger.debug('Moving newly created window with id: {} to the '
-                             'scratchpad.'.format(running['id']))
-                i3.command('[id={}]'.format(running['id']), 'move',
-                           'scratchpad')
-                logger.debug('Showing scratch window with id: {}'
-                             .format(running['id']))
-                i3.command('[id={}]'.format(running['id']), 'scratchpad',
-                           'show')
+                self._move_scratch(running['id'])
+                self._show_scratch(running['id'])
 
 
 class RaiseorlaunchWorkspace(RolBase):
@@ -301,9 +347,7 @@ class RaiseorlaunchWorkspace(RolBase):
         running = self.is_running()
         if running['id']:
             if not running['focused']:
-                logger.debug('Focusing window with id: {}'
-                             .format(running['id']))
-                i3.focus(id=running['id'])
+                self._focus_window(running['id'])
             else:
                 if self._get_current_ws() == self.workspace:
                     logger.debug('We\'re on the right workspace. Switching '
@@ -312,9 +356,7 @@ class RaiseorlaunchWorkspace(RolBase):
                     i3.command('workspace', self.workspace)
         else:
             if not self._get_current_ws() == self.workspace:
-                logger.debug('Switching to workspace: {}'
-                             .format(self.workspace))
-                i3.command('workspace', self.workspace)
+                self._switch_workspace(self.workspace)
             self._run_command()
 
     def _get_i3_tree(self):
