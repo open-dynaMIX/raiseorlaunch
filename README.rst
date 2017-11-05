@@ -7,19 +7,19 @@ raiseorlaunch
 .. image:: https://img.shields.io/pypi/pyversions/raiseorlaunch.svg
       :target: https://pypi.python.org/pypi/raiseorlaunch/
 
-A run-or-raise-application-launcher for i3 window manager.
+A run-or-raise-application-launcher for
+`i3 window manager <https://i3wm.org/>`__.
 
-If a specified application is already running, it will just focus it's
-window. If not, it will run the application.
+Features
+--------
 
-It's also possible to specify a workspace or the scratchpad. That way only
-this workspace will be used to raise and launch.
-
-workspace\_auto\_back\_and\_forth (if enabled) remains functional.
-
-You can specify a regex for window class, instance and/or title.
-
-raiseorlaunch is intended to be used with i3-shortcuts.
+- If a provided application is running, focus it's window, otherwise run it
+- Provide a regex for window class, instance and/or title to compare with
+  running windows
+- Optionally enable case-insensitive comparison
+- Optionally provide a workspace to use for raising and running
+- Optionally use the scratchpad for raising and running
+- workspace\_auto\_back\_and\_forth (if enabled) remains functional
 
 Installation
 ------------
@@ -49,7 +49,7 @@ Install
 ~~~~~~~~~~~~
 
 Installing it directly with the setup.py creates a script-entry-point that
-adds ~150ms delay. This is not acceptable for this kind of application.
+adds ~150ms delay. That's not acceptable for this kind of application.
 
 This can be prevented, if creating a wheel first and installing that (needs
 `wheel <https://pypi.python.org/pypi/wheel>`__ and
@@ -116,13 +116,13 @@ Run or raise Firefox:
 
     raiseorlaunch -c Firefox -s Navigator
 
-Use the workspace SL for sublime text:
+Use the workspace `SL` for sublime text:
 
 .. code:: shell
 
     raiseorlaunch -w SL -c "^Sublime" -s sublime_text -e subl
 
-Raise or launch SpeedCrunch and use the scratchpad.
+Raise or launch SpeedCrunch and use the scratchpad:
 
 .. code:: shell
 
@@ -149,7 +149,7 @@ for binding `$mod+s` to raise or launch sublime text.
 Known problems
 --------------
 
-Keybinds steal focus when fired. This can have a negative impact with
+Keybindings steal focus when fired. This can have a negative impact with
 applications that listen to FocusOut events and hide. This is due to `how X
 works <https://github.com/i3/i3/issues/2843#issuecomment-316173601>`__.
 
