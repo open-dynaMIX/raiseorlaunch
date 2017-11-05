@@ -289,6 +289,12 @@ class Raiseorlaunch(RolBase):
         super(Raiseorlaunch, self).__init__(*args, **kwargs)
 
     def _handle_running_not_scratch(self, running):
+        """
+        Handle app is running and not explicitly using scratchpad.
+
+        Args:
+            running (dict): {'id': int, 'scratch': bool, 'focused': bool}
+        """
         current_ws_old = self._get_current_ws()
         if not running['focused']:
             if not running['scratch']:
@@ -311,7 +317,10 @@ class Raiseorlaunch(RolBase):
         running = self.is_running()
         if running['id']:
             if self.scratch:
-                self._show_scratch(running['id'])
+                if not running['focused']:
+                    self._focus_window(running['id'])
+                else:
+                    self._show_scratch(running['id'])
             else:
                 self._handle_running_not_scratch(running)
         else:
