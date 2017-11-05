@@ -120,7 +120,7 @@ Use the workspace SL for sublime text:
 
 .. code:: shell
 
-    raiseorlaunch -w SL -c Sublime_text -s sublime_text -e subl
+    raiseorlaunch -w SL -c "^Sublime" -s sublime_text -e subl
 
 Raise or launch SpeedCrunch and use the scratchpad.
 
@@ -141,7 +141,7 @@ e.g.
 
 .. code::
 
-    bindsym $mod+s exec --no-startup-id raiseorlaunch -w SL -c Sublime_text -s sublime_text -e subl
+    bindsym $mod+s exec --no-startup-id raiseorlaunch -w SL -c "^Sublime" -s sublime_text -e subl
 
 for binding `$mod+s` to raise or launch sublime text.
 
