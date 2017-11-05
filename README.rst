@@ -17,7 +17,7 @@ this workspace will be used to raise and launch.
 
 workspace\_auto\_back\_and\_forth (if enabled) remains functional.
 
-You can specify a window class, instance and/or title.
+You can specify a regex for window class, instance and/or title.
 
 raiseorlaunch is intended to be used with i3-shortcuts.
 
@@ -88,11 +88,11 @@ Usage and options
     optional arguments:
       -h, --help            show this help message and exit
       -c WM_CLASS, --class WM_CLASS
-                            the window class
+                            the window class regex
       -s WM_INSTANCE, --instance WM_INSTANCE
-                            the window instance
+                            the window instance regex
       -t WM_TITLE, --title WM_TITLE
-                            the window title
+                            the window title regex
       -e COMMAND, --exec COMMAND
                             command to execute. If omitted, -c, -s or -t will be
                             used (lower-case). Careful: The command will not be

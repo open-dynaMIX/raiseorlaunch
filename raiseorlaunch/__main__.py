@@ -78,15 +78,15 @@ def parse_arguments():
                                      RawDescriptionHelpFormatter)
 
     parser.add_argument('-c', '--class', dest='wm_class',
-                        help='the window class')
+                        help='the window class regex')
     parser.set_defaults(wm_class='')
 
     parser.add_argument('-s', '--instance', dest='wm_instance',
-                        help='the window instance')
+                        help='the window instance regex')
     parser.set_defaults(wm_instance='')
 
     parser.add_argument('-t', '--title', dest='wm_title',
-                        help='the window title')
+                        help='the window title regex')
     parser.set_defaults(wm_title='')
 
     parser.add_argument('-e', '--exec', dest='command',

@@ -20,6 +20,7 @@ import sys
 from subprocess import Popen
 import abc
 from time import sleep
+import re
 import logging
 try:
     import i3
@@ -40,9 +41,9 @@ class RolBase(ABC):
 
     Args:
         command (str): The command to execute, if no matching window was found.
-        wm_class (str, optional): The window class to look for.
-        wm_instance (str, optional): The window instance to look for.
-        wm_title (str, optional): The window title to look for.
+        wm_class (str, optional): The window class to look for (regex).
+        wm_instance (str, optional): The window instance to look for (regex).
+        wm_title (str, optional): The window title to look for (regex).
         ignore_case (bool, optional): Ignore case when comparing
                                       window-properties with provided
                                       arguments.
@@ -61,6 +62,9 @@ class RolBase(ABC):
         self.wm_title = wm_title
         self.ignore_case = ignore_case
         self.windows = []
+        self.regex_flags = []
+        if self.ignore_case:
+            self.regex_flags.append(re.IGNORECASE)
 
         self._check_args()
 
@@ -123,9 +127,6 @@ class RolBase(ABC):
                   'wm_title': win['window_properties']['title'],
                   'focused': win['focused'],
                   'scratch': scratch}
-        if self.ignore_case:
-            for i in ['wm_class', 'wm_instance', 'wm_title']:
-                result[i] = result[i].lower()
         return result
 
     def _get_window_properties(self, tree):
@@ -166,22 +167,12 @@ class RolBase(ABC):
         Returns:
             bool: True for match, False otherwise.
         """
-        c_wm_class = (self.wm_class.lower() if self.ignore_case
-                      else self.wm_class)
-        c_wm_instance = (self.wm_instance.lower() if self.ignore_case
-                         else self.wm_instance)
-        c_wm_title = (self.wm_title.lower() if self.ignore_case
-                      else self.wm_title)
+        for i in ['wm_class', 'wm_instance', 'wm_title']:
+            if getattr(self, i):
+                matchlist = [getattr(self, i), window[i], *self.regex_flags]
+                if not re.match(*matchlist):
+                    return False
 
-        if c_wm_class:
-            if not c_wm_class == window['wm_class']:
-                return False
-        if c_wm_instance:
-            if not c_wm_instance == window['wm_instance']:
-                return False
-        if c_wm_title:
-            if not c_wm_title == window['wm_title']:
-                return False
         logger.debug('Window match: {}'.format(window))
         return True
 
