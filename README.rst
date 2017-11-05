@@ -7,20 +7,19 @@ raiseorlaunch
 .. image:: https://img.shields.io/pypi/pyversions/raiseorlaunch.svg
       :target: https://pypi.python.org/pypi/raiseorlaunch/
 
-| Run-or-raise-application-launcher for i3 window manager.
-| If a specified application is already running, it will just focus the
-  window. If not, it will run the application.
+A run-or-raise-application-launcher for i3 window manager.
 
-| It's also possible to specify a workspace. That way only this
-  workspace will be used to raise and launch.
-| workspace\_auto\_back\_and\_forth - if enabled - remains functional.
-| It's also possible to use the scratchpad.
+If a specified application is already running, it will just focus it's
+window. If not, it will run the application.
+
+It's also possible to specify a workspace or the scratchpad. That way only
+this workspace will be used to raise and launch.
+
+workspace\_auto\_back\_and\_forth (if enabled) remains functional.
 
 You can specify a window class, instance and/or title.
 
 raiseorlaunch is intended to be used with i3-shortcuts.
-
-It depends on `i3-py <https://github.com/ziberna/i3-py>`__.
 
 Installation
 ------------
@@ -41,6 +40,14 @@ For Arch Linux users it's also available in the
 Manual
 ******
 
+Dependencies
+~~~~~~~~~~~~
+
+- `i3-py <https://github.com/ziberna/i3-py>`__
+
+Installation
+~~~~~~~~~~~~
+
 Installing it directly with the setup.py creates a script-entry-point that
 adds ~150ms delay. This is not acceptable for this kind of application.
 
@@ -53,7 +60,10 @@ This can be prevented, if creating a wheel first and installing that (needs
     python setup.py bdist_wheel
     pip install ./dist/raiseorlaunch-${VERSION}-py2.py3-none-any.whl
 
-You can also just run the script without installing it:
+Just run it
+~~~~~~~~~~~
+
+You can also just run raiseorlaunch without installing it:
 
 .. code:: shell
 
@@ -73,47 +83,67 @@ Usage and options
     usage: raiseorlaunch [-h] [-c WM_CLASS] [-s WM_INSTANCE] [-t WM_TITLE]
                          [-e COMMAND] [-w WORKSPACE] [-r] [-i] [-d] [-v]
 
-    Run-or-raise-application-launcher for i3 window manager.
+    A run-or-raise-application-launcher for i3 window manager.
 
     optional arguments:
       -h, --help            show this help message and exit
       -c WM_CLASS, --class WM_CLASS
-                            the window class.
+                            the window class
       -s WM_INSTANCE, --instance WM_INSTANCE
-                            the window instance.
+                            the window instance
       -t WM_TITLE, --title WM_TITLE
-                            the window title.
+                            the window title
       -e COMMAND, --exec COMMAND
                             command to execute. If omitted, -c, -s or -t will be
                             used (lower-case). Careful: The command will not be
                             checked prior to execution!
       -w WORKSPACE, --workspace WORKSPACE
-                            workspace to use.
+                            workspace to use
       -r, --scratch         use scratchpad
-      -i, --ignore-case     ignore case.
-      -d, --debug           display debug messages.
+      -i, --ignore-case     ignore case when comparing
+      -d, --debug           display debug messages
       -v, --version         show program's version number and exit
 
 Examples
 --------
 
+CLI
+***
+
+Run or raise Firefox:
+
 .. code:: shell
 
     raiseorlaunch -c Firefox -s Navigator
 
-Run or raise Firefox.
+Use the workspace SL for sublime text:
 
 .. code:: shell
 
     raiseorlaunch -w SL -c Sublime_text -s sublime_text -e subl
 
-This uses the workspace SL for sublime text.
+Raise or launch SpeedCrunch and use the scratchpad.
 
 .. code:: shell
 
     raiseorlaunch -r -c SpeedCrunch
 
-Here we raise or launch SpeedCrunch and use the scratchpad.
+i3 bindsym
+**********
+
+In i3 config you can define a bindsym like that:
+
+.. code::
+
+    bindsym ${KEYS} exec --no-startup-id raiseorlaunch ${OPTIONS}
+
+e.g.
+
+.. code::
+
+    bindsym $mod+s exec --no-startup-id raiseorlaunch -w SL -c Sublime_text -s sublime_text -e subl
+
+for binding `$mod+s` to raise or launch sublime text.
 
 
 Known problems
