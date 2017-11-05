@@ -100,7 +100,8 @@ class RolBase(ABC):
         """
         for ws in i3.get_workspaces():
             if ws['focused']:
-                logger.debug('Focused workspace: {}'.format(ws['name']))
+                logger.debug('Currently focused workspace: {}'
+                             .format(ws['name']))
                 return ws['name']
 
     def _compile_props_dict(self, win, scratch):
@@ -185,8 +186,6 @@ class RolBase(ABC):
                    'scratch': bool or None,
                    'focused': bool or None}
         """
-        tree = self._get_i3_tree()
-        self._get_window_properties(tree)
         running = {'id': None, 'scratch': None, 'focused': None}
         if not self.windows:
             return running
@@ -199,6 +198,20 @@ class RolBase(ABC):
                 break
 
         return running
+
+    def is_running(self):
+        """
+        Convenience function to fetch the i3 tree, extract the window
+        properties and compare it with existing windows.
+
+        Returns:
+            dict: {'id': str or None,
+                   'scratch': bool or None,
+                   'focused': bool or None}
+        """
+        tree = self._get_i3_tree()
+        self._get_window_properties(tree)
+        return self._get_properties_of_running_app()
 
 
 class Raiseorlaunch(RolBase):
@@ -224,7 +237,7 @@ class Raiseorlaunch(RolBase):
         Search for running window that matches provided properties
         and act accordingly.
         """
-        running = self._get_properties_of_running_app()
+        running = self.is_running()
         if running['id']:
             if self.scratch:
                 logger.debug('Showing scratch window with id: {}'
@@ -250,7 +263,7 @@ class Raiseorlaunch(RolBase):
             self._run_command()
             if self.scratch:
                 sleep(1.5)
-                running = self._get_properties_of_running_app()
+                running = self.is_running()
                 logger.debug('Moving newly created window with id: {} to the '
                              'scratchpad.'.format(running['id']))
                 i3.command('[id={}]'.format(running['id']), 'move',
@@ -285,7 +298,7 @@ class RaiseorlaunchWorkspace(RolBase):
         Search for running window that matches provided properties
         and act accordingly.
         """
-        running = self._get_properties_of_running_app()
+        running = self.is_running()
         if running['id']:
             if not running['focused']:
                 logger.debug('Focusing window with id: {}'
