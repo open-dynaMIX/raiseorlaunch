@@ -45,7 +45,7 @@ Dependencies
 
 - `i3-py <https://github.com/ziberna/i3-py>`__
 
-Installation
+Install
 ~~~~~~~~~~~~
 
 Installing it directly with the setup.py creates a script-entry-point that
@@ -53,15 +53,15 @@ adds ~150ms delay. This is not acceptable for this kind of application.
 
 This can be prevented, if creating a wheel first and installing that (needs
 `wheel <https://pypi.python.org/pypi/wheel>`__ and
-`pip <https://pypi.python.org/pypi/pip>`__ installed):
+`pip <https://pypi.python.org/pypi/pip>`__):
 
 .. code:: shell
 
     python setup.py bdist_wheel
     pip install ./dist/raiseorlaunch-${VERSION}-py2.py3-none-any.whl
 
-Just run it
-~~~~~~~~~~~
+Run without installation
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can also just run raiseorlaunch without installing it:
 
