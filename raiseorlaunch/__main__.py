@@ -43,12 +43,11 @@ def set_command(parser, args):
     class, instance, title.
     """
     if not args.command:
-        if args.wm_class:
-            args.command = args.wm_class.lower()
-        elif args.wm_instance:
-            args.command = args.wm_instance.lower()
-        elif args.wm_title:
-            args.command = args.wm_titlef.lower()
+        for i in ['wm_class', 'wm_instance', 'wm_title']:
+            if getattr(args, i):
+                args.command = getattr(args, i).lower()
+                break
+
         if not args.command:
             parser.error('No executable provided!')
         logger.debug('Set command to: {}'.format(args.command))

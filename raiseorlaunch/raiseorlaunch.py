@@ -288,6 +288,21 @@ class Raiseorlaunch(RolBase):
             self.scratch = False
         super(Raiseorlaunch, self).__init__(*args, **kwargs)
 
+    def _handle_running_not_scratch(self, running):
+        current_ws_old = self._get_current_ws()
+        if not running['focused']:
+            if not running['scratch']:
+                self._focus_window(running['id'])
+            else:
+                self._show_scratch(running['id'])
+        else:
+            if current_ws_old == self._get_current_ws():
+                logger.debug('We\'re on the right workspace. '
+                             'Switching anyway to retain '
+                             'workspace_back_and_forth '
+                             'functionality.')
+                i3.command('workspace', current_ws_old)
+
     def run(self):
         """
         Search for running window that matches provided properties
@@ -298,19 +313,7 @@ class Raiseorlaunch(RolBase):
             if self.scratch:
                 self._show_scratch(running['id'])
             else:
-                current_ws_old = self._get_current_ws()
-                if not running['focused']:
-                    if not running['scratch']:
-                        self._focus_window(running['id'])
-                    else:
-                        self._show_scratch(running['id'])
-                else:
-                    if current_ws_old == self._get_current_ws():
-                        logger.debug('We\'re on the right workspace. '
-                                     'Switching anyway to retain '
-                                     'workspace_back_and_forth '
-                                     'functionality.')
-                        i3.command('workspace', current_ws_old)
+                self._handle_running_not_scratch(running)
         else:
             self._run_command()
             if self.scratch:
