@@ -249,7 +249,7 @@ class Raiseorlaunch(RolBase):
                     i3.focus(id=running['id'])
                 else:
                     if current_ws_old == self._get_current_ws():
-                        if not running['scratch_id']:
+                        if not running['scratch']:
                             logger.debug('We\'re on the right workspace. '
                                          'Switching anyway to retain '
                                          'workspace_back_and_forth '
