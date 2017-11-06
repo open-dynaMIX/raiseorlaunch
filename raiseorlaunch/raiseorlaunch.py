@@ -10,8 +10,8 @@ from __future__ import print_function
 
 
 __title__ = 'raiseorlaunch'
-__description__ = 'Run-or-raise-application-launcher for i3 window manager.'
-__version__ = '0.1.3'
+__description__ = 'A run-or-raise-application-launcher for i3 window manager.'
+__version__ = '0.2.0'
 __license__ = 'MIT'
 __author__ = 'Fabio Rämi'
 
@@ -20,6 +20,7 @@ import sys
 from subprocess import Popen
 import abc
 from time import sleep
+import re
 import logging
 try:
     import i3
@@ -40,9 +41,9 @@ class RolBase(ABC):
 
     Args:
         command (str): The command to execute, if no matching window was found.
-        wm_class (str, optional): The window class to look for.
-        wm_instance (str, optional): The window instance to look for.
-        wm_title (str, optional): The window title to look for.
+        wm_class (str, optional): Regex for the the window class.
+        wm_instance (str, optional): Regex for the the window instance.
+        wm_title (str, optional): Regex for the the window title.
         ignore_case (bool, optional): Ignore case when comparing
                                       window-properties with provided
                                       arguments.
@@ -60,7 +61,12 @@ class RolBase(ABC):
         self.wm_instance = wm_instance
         self.wm_title = wm_title
         self.ignore_case = ignore_case
+
         self.windows = []
+        self.regex_flags = []
+
+        if self.ignore_case:
+            self.regex_flags.append(re.IGNORECASE)
 
         self._check_args()
 
@@ -80,26 +86,27 @@ class RolBase(ABC):
             raise TypeError('You need to specify '
                             '"wm_class", "wm_instance" or "wm_title.')
 
-    def _run_command(self):
+    def _compare_running(self, window):
         """
-        Run the specified command.
-        """
-        logger.debug('Executing command: {}'.format(self.command))
-        Popen(self.command, shell=True)
+        Compare the properties of a running window with the ones provided.
 
-    def _get_current_ws(self):
-        """
-        Get the current workspace name.
+        Args:
+            window (dict): window properties to compare.
 
         Returns:
-            str: The workspace name
+            bool: True for match, False otherwise.
         """
-        for ws in i3.get_workspaces():
-            if ws['focused']:
-                logger.debug('Focused workspace: {}'.format(ws['name']))
-                return ws['name']
+        for i in ['wm_class', 'wm_instance', 'wm_title']:
+            if getattr(self, i):
+                matchlist = [getattr(self, i), window[i]]
+                matchlist.extend(self.regex_flags)
+                if not re.match(*matchlist):
+                    return False
 
-    def _compile_props_dict(self, win, scratch):
+        logger.debug('Window match: {}'.format(window))
+        return True
+
+    def _compile_props_dict(self, win, scratchpad_state):
         """
         Args:
             win (dict): node from i3 tree
@@ -113,7 +120,7 @@ class RolBase(ABC):
                   'focused': bool,
                   'scratch': bool}
         """
-        if scratch == 'none':
+        if scratchpad_state == 'none':
             scratch = False
         else:
             scratch = True
@@ -123,28 +130,37 @@ class RolBase(ABC):
                   'wm_title': win['window_properties']['title'],
                   'focused': win['focused'],
                   'scratch': scratch}
-        if self.ignore_case:
-            for i in ['wm_class', 'wm_instance', 'wm_title']:
-                result[i] = result[i].lower()
         return result
 
-    def _get_window_properties(self, tree):
+    def _get_properties_of_running_app(self):
         """
-        Parses the i3 tree for nodes and appends them to 'self.windows'.
+        Check if application is running on the (maybe) given workspace.
 
-        Args:
-            tree (dict): i3 tree.
+        Returns:
+            dict: {'id': str or None,
+                   'scratch': bool or None,
+                   'focused': bool or None}
         """
-        for item in tree:
-            if item['window']:
-                props = self._compile_props_dict(item,
-                                                 item['scratchpad_state'])
-                logger.debug('Found window: {}'.format(props))
-                self.windows.append(props)
-            if 'nodes' in item:
-                self._get_window_properties(item['nodes'])
-            if 'floating_nodes' in item:
-                self._get_window_properties(item['floating_nodes'])
+        running = {'id': None, 'scratch': None, 'focused': None}
+        if not self.windows:
+            logger.warning('No active windows found.')
+            return running
+
+        for window in self.windows:
+            if self._compare_running(window):
+                running['scratch'] = window['scratch']
+                running['id'] = window['id']
+                running['focused'] = window['focused']
+                break
+
+        return running
+
+    def _run_command(self):
+        """
+        Run the specified command.
+        """
+        logger.debug('Executing command: {}'.format(self.command))
+        Popen(self.command, shell=True)
 
     def _get_i3_tree(self):
         """
@@ -156,38 +172,57 @@ class RolBase(ABC):
         logger.debug('Getting i3 tree.')
         return i3.filter()
 
-    def _compare_running(self, window):
+    def focus_window(self, win_id):
         """
-        Compare the properties of a running window with the ones provided.
+        Focus window.
 
         Args:
-            window (dict): window properties to compare.
+            win_id (int): window id
 
         Returns:
-            bool: True for match, False otherwise.
+            bool: True if successful, False otherwise.
         """
-        c_wm_class = (self.wm_class.lower() if self.ignore_case
-                      else self.wm_class)
-        c_wm_instance = (self.wm_instance.lower() if self.ignore_case
-                         else self.wm_instance)
-        c_wm_title = (self.wm_title.lower() if self.ignore_case
-                      else self.wm_title)
+        logger.debug('Focusing window with id: {}'.format(win_id))
+        return i3.focus(id=win_id)[0]
 
-        if c_wm_class:
-            if not c_wm_class == window['wm_class']:
-                return False
-        if c_wm_instance:
-            if not c_wm_instance == window['wm_instance']:
-                return False
-        if c_wm_title:
-            if not c_wm_title == window['wm_title']:
-                return False
-        logger.debug('Window match: {}'.format(window))
-        return True
-
-    def _get_properties_of_running_app(self):
+    def get_current_workspace(self):
         """
-        Check if application is running on the (maybe) given workspace.
+        Get the current workspace name.
+
+        Returns:
+            str: The workspace name
+        """
+        for ws in i3.get_workspaces():
+            if ws['focused']:
+                logger.debug('Currently focused workspace: {}'
+                             .format(ws['name']))
+                return ws['name']
+
+    def get_window_properties(self, tree, scratchpad_state='none'):
+        """
+        Walks the i3 tree, extracts nodes and appends them to 'self.windows'.
+
+        Args:
+            tree (dict): i3 tree.
+            scratch (str, optional): 'none', if not on scratchpad.
+                                     Otherwise 'changed'.
+        """
+        for item in tree:
+            if item['window']:
+                props = self._compile_props_dict(item,
+                                                 scratchpad_state)
+                logger.debug('Found window: {}'.format(props))
+                self.windows.append(props)
+            if 'nodes' in item:
+                self.get_window_properties(item['nodes'],
+                                           item['scratchpad_state'])
+            if 'floating_nodes' in item:
+                self.get_window_properties(item['floating_nodes'])
+
+    def is_running(self):
+        """
+        Convenience method to fetch the i3 tree, extract the window
+        properties and compare it with existing windows.
 
         Returns:
             dict: {'id': str or None,
@@ -195,19 +230,48 @@ class RolBase(ABC):
                    'focused': bool or None}
         """
         tree = self._get_i3_tree()
-        self._get_window_properties(tree)
-        running = {'id': None, 'scratch': None, 'focused': None}
-        if not self.windows:
-            return running
+        self.get_window_properties(tree)
+        return self._get_properties_of_running_app()
 
-        for window in self.windows:
-            if self._compare_running(window):
-                running['scratch'] = window['scratch']
-                running['id'] = window['id']
-                running['focused'] = window['focused']
-                break
+    def move_scratch(self, win_id):
+        """
+        Move window to scratchpad.
 
-        return running
+        Args:
+            win_id (int): window id
+
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        logger.debug('Moving newly created window with id: {} to the '
+                     'scratchpad.'.format(win_id))
+        return i3.command('[id={}]'.format(win_id), 'move', 'scratchpad')[0]
+
+    def show_scratch(self, win_id):
+        """
+        Show scratchpad window.
+
+        Args:
+            win_id (int): window id
+
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        logger.debug('Showing scratch window with id: {}'.format(win_id))
+        return i3.command('[id={}]'.format(win_id), 'scratchpad', 'show')[0]
+
+    def switch_workspace(self, workspace):
+        """
+        Focus another workspace.
+
+        Args:
+            workspace (str): workspace
+
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        logger.debug('Switching to workspace: {}'.format(workspace))
+        return i3.command('workspace', workspace)[0]
 
 
 class Raiseorlaunch(RolBase):
@@ -228,46 +292,50 @@ class Raiseorlaunch(RolBase):
             self.scratch = False
         super(Raiseorlaunch, self).__init__(*args, **kwargs)
 
+    def _handle_running_not_scratch(self, running):
+        """
+        Handle app is running and not explicitly using scratchpad.
+
+        Args:
+            running (dict): {'id': int, 'scratch': bool, 'focused': bool}
+        """
+        current_ws_old = self.get_current_workspace()
+        if not running['focused']:
+            if not running['scratch']:
+                self.focus_window(running['id'])
+            else:
+                self.show_scratch(running['id'])
+        else:
+            if current_ws_old == self.get_current_workspace():
+                logger.debug('We\'re on the right workspace. '
+                             'Switching anyway to retain '
+                             'workspace_back_and_forth '
+                             'functionality.')
+                self.switch_workspace(current_ws_old)
+
     def run(self):
         """
         Search for running window that matches provided properties
         and act accordingly.
         """
-        running = self._get_properties_of_running_app()
+        running = self.is_running()
         if running['id']:
+            logger.debug('Application is running: {}'.format(running))
             if self.scratch:
-                logger.debug('Showing scratch window with id: {}'
-                             .format(running['id']))
-                i3.command('[id={}]'.format(running['id']),
-                           'scratchpad',
-                           'show')
-            else:
-                current_ws_old = self._get_current_ws()
                 if not running['focused']:
-                    logger.debug('Focusing window with id: {}'
-                                 .format(running['id']))
-                    i3.focus(id=running['id'])
+                    self.focus_window(running['id'])
                 else:
-                    if current_ws_old == self._get_current_ws():
-                        if not running['scratch_id']:
-                            logger.debug('We\'re on the right workspace. '
-                                         'Switching anyway to retain '
-                                         'workspace_back_and_forth '
-                                         'functionality.')
-                            i3.command('workspace', current_ws_old)
+                    self.show_scratch(running['id'])
+            else:
+                self._handle_running_not_scratch(running)
         else:
+            logger.debug('Application is not running.')
             self._run_command()
             if self.scratch:
                 sleep(1.5)
-                running = self._get_properties_of_running_app()
-                logger.debug('Moving newly created window with id: {} to the '
-                             'scratchpad.'.format(running['id']))
-                i3.command('[id={}]'.format(running['id']), 'move',
-                           'scratchpad')
-                logger.debug('Showing scratch window with id: {}'
-                             .format(running['id']))
-                i3.command('[id={}]'.format(running['id']), 'scratchpad',
-                           'show')
+                running = self.is_running()
+                self.move_scratch(running['id'])
+                self.show_scratch(running['id'])
 
 
 class RaiseorlaunchWorkspace(RolBase):
@@ -289,30 +357,6 @@ class RaiseorlaunchWorkspace(RolBase):
                             "argument: 'workspace'")
         super(RaiseorlaunchWorkspace, self).__init__(*args, **kwargs)
 
-    def run(self):
-        """
-        Search for running window that matches provided properties
-        and act accordingly.
-        """
-        running = self._get_properties_of_running_app()
-        if running['id']:
-            if not running['focused']:
-                logger.debug('Focusing window with id: {}'
-                             .format(running['id']))
-                i3.focus(id=running['id'])
-            else:
-                if self._get_current_ws() == self.workspace:
-                    logger.debug('We\'re on the right workspace. Switching '
-                                 'anyway to retain workspace_back_and_forth '
-                                 'functionality.')
-                    i3.command('workspace', self.workspace)
-        else:
-            if not self._get_current_ws() == self.workspace:
-                logger.debug('Switching to workspace: {}'
-                             .format(self.workspace))
-                i3.command('workspace', self.workspace)
-            self._run_command()
-
     def _get_i3_tree(self):
         """
         Get the current i3 tree from the provided workspace.
@@ -323,3 +367,26 @@ class RaiseorlaunchWorkspace(RolBase):
         logger.debug('Getting i3 tree for workspace: {}.'
                      .format(self.workspace))
         return i3.filter(name=self.workspace)
+
+    def run(self):
+        """
+        Search for running window that matches provided properties
+        and act accordingly.
+        """
+        running = self.is_running()
+        if running['id']:
+            logger.debug('Application is running on workspace "{}": {}'
+                         .format(self.workspace, running))
+            if not running['focused']:
+                self.focus_window(running['id'])
+            else:
+                if self.get_current_workspace() == self.workspace:
+                    logger.debug('We\'re on the right workspace. Switching '
+                                 'anyway to retain workspace_back_and_forth '
+                                 'functionality.')
+                    self.switch_workspace(self.workspace)
+        else:
+            logger.debug('Application is not running.')
+            if not self.get_current_workspace() == self.workspace:
+                self.switch_workspace(self.workspace)
+            self._run_command()

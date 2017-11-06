@@ -43,12 +43,11 @@ def set_command(parser, args):
     class, instance, title.
     """
     if not args.command:
-        if args.wm_class:
-            args.command = args.wm_class.lower()
-        elif args.wm_instance:
-            args.command = args.wm_instance.lower()
-        elif args.wm_title:
-            args.command = args.wm_titlef.lower()
+        for i in ['wm_class', 'wm_instance', 'wm_title']:
+            if getattr(args, i):
+                args.command = getattr(args, i).lower()
+                break
+
         if not args.command:
             parser.error('No executable provided!')
         logger.debug('Set command to: {}'.format(args.command))
@@ -78,15 +77,15 @@ def parse_arguments():
                                      RawDescriptionHelpFormatter)
 
     parser.add_argument('-c', '--class', dest='wm_class',
-                              help='the window class.')
+                        help='the window class regex')
     parser.set_defaults(wm_class='')
 
     parser.add_argument('-s', '--instance', dest='wm_instance',
-                        help='the window instance.')
+                        help='the window instance regex')
     parser.set_defaults(wm_instance='')
 
     parser.add_argument('-t', '--title', dest='wm_title',
-                        help='the window title.')
+                        help='the window title regex')
     parser.set_defaults(wm_title='')
 
     parser.add_argument('-e', '--exec', dest='command',
@@ -97,17 +96,17 @@ def parse_arguments():
     parser.set_defaults(command=None)
 
     parser.add_argument('-w', '--workspace', dest='workspace',
-                        help='workspace to use.')
+                        help='workspace to use')
     parser.set_defaults(workspace=None)
 
     parser.add_argument('-r', '--scratch', dest='scratch',
                         action='store_true', help='use scratchpad')
 
     parser.add_argument('-i', '--ignore-case', dest='ignore_case',
-                        action='store_true', help='ignore case.')
+                        action='store_true', help='ignore case when comparing')
 
     parser.add_argument('-d', '--debug', dest='debug',
-                        help='display debug messages.',
+                        help='display debug messages',
                         action='store_true')
 
     parser.add_argument('-v', '--version', action='version',
