@@ -105,7 +105,7 @@ class RolBase(ABC):
         logger.debug('Window match: {}'.format(window))
         return True
 
-    def _compile_props_dict(self, win, scratch):
+    def _compile_props_dict(self, win, scratchpad_state):
         """
         Args:
             win (dict): node from i3 tree
@@ -119,7 +119,7 @@ class RolBase(ABC):
                   'focused': bool,
                   'scratch': bool}
         """
-        if scratch == 'none':
+        if scratchpad_state == 'none':
             scratch = False
         else:
             scratch = True
@@ -197,17 +197,19 @@ class RolBase(ABC):
                              .format(ws['name']))
                 return ws['name']
 
-    def get_window_properties(self, tree, scratch=False):
+    def get_window_properties(self, tree, scratchpad_state='none'):
         """
-        Parses the i3 tree for nodes and appends them to 'self.windows'.
+        Walks the i3 tree, extracts nodes and appends them to 'self.windows'.
 
         Args:
             tree (dict): i3 tree.
+            scratch (str, optional): 'none', if not on scratchpad.
+                                     Otherwise 'changed'.
         """
         for item in tree:
             if item['window']:
                 props = self._compile_props_dict(item,
-                                                 scratch)
+                                                 scratchpad_state)
                 logger.debug('Found window: {}'.format(props))
                 self.windows.append(props)
             if 'nodes' in item:
