@@ -98,7 +98,8 @@ class RolBase(ABC):
         """
         for i in ['wm_class', 'wm_instance', 'wm_title']:
             if getattr(self, i):
-                matchlist = [getattr(self, i), window[i], *self.regex_flags]
+                matchlist = [getattr(self, i), window[i]]
+                matchlist.extend(self.regex_flags)
                 if not re.match(*matchlist):
                     return False
 
