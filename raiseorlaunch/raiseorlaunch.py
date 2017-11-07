@@ -11,7 +11,7 @@ from __future__ import print_function
 
 __title__ = 'raiseorlaunch'
 __description__ = 'A run-or-raise-application-launcher for i3 window manager.'
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 __license__ = 'MIT'
 __author__ = 'Fabio Rämi'
 
@@ -106,10 +106,11 @@ class RolBase(ABC):
         logger.debug('Window match: {}'.format(window))
         return True
 
-    def _compile_props_dict(self, win, scratchpad_state):
+    def _compile_props_dict(self, win, workspace, scratchpad_state):
         """
         Args:
             win (dict): node from i3 tree
+            workspace (str): workspace the window is located on.
             scratch (str): 'scratchpad_state' of win
 
         Returns:
@@ -117,6 +118,7 @@ class RolBase(ABC):
                   'wm_class': str,
                   'wm_instance': str,
                   'wm_title': str,
+                  'workspace': str,
                   'focused': bool,
                   'scratch': bool}
         """
@@ -128,6 +130,7 @@ class RolBase(ABC):
                   'wm_class': win['window_properties']['class'],
                   'wm_instance': win['window_properties']['instance'],
                   'wm_title': win['window_properties']['title'],
+                  'workspace': workspace,
                   'focused': win['focused'],
                   'scratch': scratch}
         return result
@@ -139,7 +142,8 @@ class RolBase(ABC):
         Returns:
             dict: {'id': str or None,
                    'scratch': bool or None,
-                   'focused': bool or None}
+                   'focused': bool or None,
+                   'workspace: str or None'}
         """
         running = {'id': None, 'scratch': None, 'focused': None}
         if not self.windows:
@@ -151,6 +155,7 @@ class RolBase(ABC):
                 running['scratch'] = window['scratch']
                 running['id'] = window['id']
                 running['focused'] = window['focused']
+                running['workspace'] = window['workspace']
                 break
 
         return running
@@ -198,36 +203,46 @@ class RolBase(ABC):
                              .format(ws['name']))
                 return ws['name']
 
-    def get_window_properties(self, tree, scratchpad_state='none'):
+    def get_window_properties(self,
+                              tree,
+                              workspace=None,
+                              scratchpad_state='none'):
         """
         Walks the i3 tree, extracts nodes and appends them to 'self.windows'.
 
         Args:
             tree (dict): i3 tree.
+            workspace (str): workspace the tree is located on.
             scratch (str, optional): 'none', if not on scratchpad.
                                      Otherwise 'changed'.
         """
         for item in tree:
+            if item['type'] == 'workspace':
+                workspace = item['name']
             if item['window']:
                 props = self._compile_props_dict(item,
+                                                 workspace,
                                                  scratchpad_state)
                 logger.debug('Found window: {}'.format(props))
                 self.windows.append(props)
             if 'nodes' in item:
                 self.get_window_properties(item['nodes'],
+                                           workspace,
                                            item['scratchpad_state'])
             if 'floating_nodes' in item:
-                self.get_window_properties(item['floating_nodes'])
+                self.get_window_properties(item['floating_nodes'],
+                                           workspace)
 
     def is_running(self):
         """
         Convenience method to fetch the i3 tree, extract the window
-        properties and compare it with existing windows.
+        properties and find window matching provided properties.
 
         Returns:
             dict: {'id': str or None,
                    'scratch': bool or None,
-                   'focused': bool or None}
+                   'focused': bool or None,
+                   'workspace: str or None'}
         """
         tree = self._get_i3_tree()
         self.get_window_properties(tree)
@@ -292,26 +307,42 @@ class Raiseorlaunch(RolBase):
             self.scratch = False
         super(Raiseorlaunch, self).__init__(*args, **kwargs)
 
-    def _handle_running_not_scratch(self, running):
+    def _handle_running_not_scratch(self, running, current_ws):
         """
         Handle app is running and not explicitly using scratchpad.
 
         Args:
             running (dict): {'id': int, 'scratch': bool, 'focused': bool}
+            current_ws (str): currently used workspace.
         """
-        current_ws_old = self.get_current_workspace()
         if not running['focused']:
             if not running['scratch']:
                 self.focus_window(running['id'])
             else:
                 self.show_scratch(running['id'])
         else:
-            if current_ws_old == self.get_current_workspace():
+            if current_ws == self.get_current_workspace():
                 logger.debug('We\'re on the right workspace. '
                              'Switching anyway to retain '
                              'workspace_back_and_forth '
                              'functionality.')
-                self.switch_workspace(current_ws_old)
+                self.switch_workspace(current_ws)
+
+    def _handle_running_scratch(self, running, current_ws):
+        """
+        Handle app is running and explicitly using scratchpad.
+
+        Args:
+            running (dict): {'id': int, 'scratch': bool, 'focused': bool}
+            current_ws (str): currently used workspace.
+        """
+        if not running['focused']:
+            if current_ws == running['workspace']:
+                self.focus_window(running['id'])
+            else:
+                self.show_scratch(running['id'])
+        else:
+            self.show_scratch(running['id'])
 
     def run(self):
         """
@@ -319,15 +350,13 @@ class Raiseorlaunch(RolBase):
         and act accordingly.
         """
         running = self.is_running()
+        current_ws = self.get_current_workspace()
         if running['id']:
             logger.debug('Application is running: {}'.format(running))
             if self.scratch:
-                if not running['focused']:
-                    self.focus_window(running['id'])
-                else:
-                    self.show_scratch(running['id'])
+                self._handle_running_scratch(running, current_ws)
             else:
-                self._handle_running_not_scratch(running)
+                self._handle_running_not_scratch(running, current_ws)
         else:
             logger.debug('Application is not running.')
             self._run_command()
@@ -374,19 +403,20 @@ class RaiseorlaunchWorkspace(RolBase):
         and act accordingly.
         """
         running = self.is_running()
+        current_ws = self.get_current_workspace()
         if running['id']:
             logger.debug('Application is running on workspace "{}": {}'
                          .format(self.workspace, running))
             if not running['focused']:
                 self.focus_window(running['id'])
             else:
-                if self.get_current_workspace() == self.workspace:
+                if current_ws == self.workspace:
                     logger.debug('We\'re on the right workspace. Switching '
                                  'anyway to retain workspace_back_and_forth '
                                  'functionality.')
                     self.switch_workspace(self.workspace)
         else:
             logger.debug('Application is not running.')
-            if not self.get_current_workspace() == self.workspace:
+            if not current_ws == self.workspace:
                 self.switch_workspace(self.workspace)
             self._run_command()
