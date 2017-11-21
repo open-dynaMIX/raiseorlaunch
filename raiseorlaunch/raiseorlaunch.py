@@ -126,10 +126,16 @@ class RolBase(ABC):
             scratch = False
         else:
             scratch = True
+
+        if 'title' in win['window_properties']:
+            title = win['window_properties']['title']
+        else:
+            title = ''
+
         result = {'id': win['window'],
                   'wm_class': win['window_properties']['class'],
                   'wm_instance': win['window_properties']['instance'],
-                  'wm_title': win['window_properties']['title'],
+                  'wm_title': title,
                   'workspace': workspace,
                   'focused': win['focused'],
                   'scratch': scratch}
