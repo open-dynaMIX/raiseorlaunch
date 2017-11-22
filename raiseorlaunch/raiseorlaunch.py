@@ -127,10 +127,7 @@ class RolBase(ABC):
         else:
             scratch = True
 
-        if 'title' in win['window_properties']:
-            title = win['window_properties']['title']
-        else:
-            title = ''
+        title = win['window_properties'].get('title', '')
 
         result = {'id': win['window'],
                   'wm_class': win['window_properties']['class'],
