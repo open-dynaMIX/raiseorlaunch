@@ -19,13 +19,14 @@ logger = logging.getLogger(__name__)
 
 def verify_app(parser, application):
     """
-    Verify the given application argument.
+    Verify the executable if not provided with -e.
     """
     def error_handle():
         """
         Handle a verify_app error.
         """
-        parser.error('{} is not an executable!'.format(application))
+        parser.error('{} is not an executable! Did you forget to supply -e?'
+                     .format(application))
 
     is_exe = spawn.find_executable(application)
     if not is_exe:
@@ -50,11 +51,8 @@ def set_command(parser, args):
 
         if not args.command:
             parser.error('No executable provided!')
+        verify_app(parser, args.command)
         logger.debug('Set command to: {}'.format(args.command))
-
-    args.command = args.command
-
-    verify_app(parser, args.command.split(' ')[0])
 
     return args
 
