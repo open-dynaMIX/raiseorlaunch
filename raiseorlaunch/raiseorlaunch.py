@@ -169,7 +169,9 @@ class RolBase(ABC):
         Run the specified command with exec.
         """
         if self.no_startup_id:
-            self.command = '--no-startup-id {}'.format(self.command)
+            self.command = '--no-startup-id "{}"'.format(self.command)
+        else:
+            self.command = '"{}"'.format(self.command)
         logger.debug('Executing command: {}'.format(self.command))
         i3.exec(self.command)
 

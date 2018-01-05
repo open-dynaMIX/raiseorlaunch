@@ -87,10 +87,13 @@ def parse_arguments():
     parser.set_defaults(wm_title='')
 
     parser.add_argument('-e', '--exec', dest='command',
-                        help='command to execute. If omitted, -c, -s or '
-                        '-t will be used (lower-case). '
-                        'Careful: The command will not be checked '
-                        'prior to execution!')
+                        help='command to run with exec. If omitted, -c, -s or '
+                        '-t will be used (lower-case). The command will '
+                        'always be quoted, so make sure you properly escape '
+                        'internal quotation marks. If using double-quotes '
+                        'for "-e", you need to triple escape them, if using '
+                        'single-quotes only one is needed. Careful: The '
+                        'command will not be checked prior to execution!')
     parser.set_defaults(command=None)
 
     parser.add_argument('--no-startup-id', dest='no_startup_id',

@@ -95,8 +95,12 @@ Usage and options
       -t WM_TITLE, --title WM_TITLE
                             the window title regex
       -e COMMAND, --exec COMMAND
-                            command to execute. If omitted, -c, -s or -t will be
-                            used (lower-case). Careful: The command will not be
+                            command to run with exec. If omitted, -c, -s or -t
+                            will be used (lower-case). The command will always be
+                            quoted, so make sure you properly escape internal
+                            quotation marks. If using double-quotes for "-e", you
+                            need to triple escape them, if using single-quotes
+                            only one is needed. Careful: The command will not be
                             checked prior to execution!
       --no-startup-id       use --no-startup-id when running command with exec
       -w WORKSPACE, --workspace WORKSPACE
@@ -105,7 +109,6 @@ Usage and options
       -i, --ignore-case     ignore case when comparing
       -d, --debug           display debug messages
       -v, --version         show program's version number and exit
-
 
 Examples
 --------
