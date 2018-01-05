@@ -17,7 +17,6 @@ __author__ = 'Fabio Rämi'
 
 
 import sys
-from subprocess import Popen
 import abc
 from time import sleep
 import re
@@ -47,6 +46,8 @@ class RolBase(ABC):
         ignore_case (bool, optional): Ignore case when comparing
                                       window-properties with provided
                                       arguments.
+        no_startup_id (bool, optional): use --no-startup-id when running
+                                        command with exec.
 
     """
 
@@ -55,12 +56,14 @@ class RolBase(ABC):
                  wm_class='',
                  wm_instance='',
                  wm_title='',
-                 ignore_case=False):
+                 ignore_case=False,
+                 no_startup_id=False):
         self.command = command
         self.wm_class = wm_class
         self.wm_instance = wm_instance
         self.wm_title = wm_title
         self.ignore_case = ignore_case
+        self.no_startup_id = no_startup_id
 
         self.windows = []
         self.regex_flags = []
@@ -163,10 +166,12 @@ class RolBase(ABC):
 
     def _run_command(self):
         """
-        Run the specified command.
+        Run the specified command with exec.
         """
+        if self.no_startup_id:
+            self.command = '--no-startup-id {}'.format(self.command)
         logger.debug('Executing command: {}'.format(self.command))
-        Popen(self.command, shell=True)
+        i3.exec(self.command)
 
     def _get_i3_tree(self):
         """

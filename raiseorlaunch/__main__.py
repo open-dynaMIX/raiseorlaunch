@@ -93,6 +93,11 @@ def parse_arguments():
                         'prior to execution!')
     parser.set_defaults(command=None)
 
+    parser.add_argument('--no-startup-id', dest='no_startup_id',
+                        action='store_true',
+                        help='use --no-startup-id when running command with '
+                        'exec')
+
     parser.add_argument('-w', '--workspace', dest='workspace',
                         help='workspace to use')
     parser.set_defaults(workspace=None)
@@ -137,6 +142,7 @@ def main():
                                 wm_instance=args.wm_instance,
                                 wm_title=args.wm_title,
                                 ignore_case=args.ignore_case,
+                                no_startup_id=args.no_startup_id,
                                 scratch=args.scratch)
         else:
             rol = RaiseorlaunchWorkspace(command=args.command,
@@ -144,6 +150,7 @@ def main():
                                          wm_instance=args.wm_instance,
                                          wm_title=args.wm_title,
                                          ignore_case=args.ignore_case,
+                                         no_startup_id=args.no_startup_id,
                                          workspace=args.workspace)
     except TypeError as e:
         if str(e) == ('You need to specify '

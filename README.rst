@@ -81,7 +81,8 @@ Usage and options
 ::
 
     usage: raiseorlaunch [-h] [-c WM_CLASS] [-s WM_INSTANCE] [-t WM_TITLE]
-                         [-e COMMAND] [-w WORKSPACE] [-r] [-i] [-d] [-v]
+                         [-e COMMAND] [--no-startup-id] [-w WORKSPACE] [-r] [-i]
+                         [-d] [-v]
 
     A run-or-raise-application-launcher for i3 window manager.
 
@@ -97,12 +98,14 @@ Usage and options
                             command to execute. If omitted, -c, -s or -t will be
                             used (lower-case). Careful: The command will not be
                             checked prior to execution!
+      --no-startup-id       use --no-startup-id when running command with exec
       -w WORKSPACE, --workspace WORKSPACE
                             workspace to use
       -r, --scratch         use scratchpad
       -i, --ignore-case     ignore case when comparing
       -d, --debug           display debug messages
       -v, --version         show program's version number and exit
+
 
 Examples
 --------
