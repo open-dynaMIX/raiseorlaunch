@@ -11,7 +11,7 @@ from __future__ import print_function
 
 __title__ = 'raiseorlaunch'
 __description__ = 'A run-or-raise-application-launcher for i3 window manager.'
-__version__ = '0.2.3'
+__version__ = '1.0.0'
 __license__ = 'MIT'
 __author__ = 'Fabio Rämi'
 
