@@ -90,10 +90,9 @@ def parse_arguments():
                         help='command to run with exec. If omitted, -c, -s or '
                         '-t will be used (lower-case). The command will '
                         'always be quoted, so make sure you properly escape '
-                        'internal quotation marks. If using double-quotes '
-                        'for "-e", you need to triple escape them, if using '
-                        'single-quotes only one is needed. Careful: The '
-                        'command will not be checked prior to execution!')
+                        'internal quotation marks. See the README for '
+                        'examples. Careful: The command will not be checked '
+                        'prior to execution!')
     parser.set_defaults(command=None)
 
     parser.add_argument('--no-startup-id', dest='no_startup_id',
