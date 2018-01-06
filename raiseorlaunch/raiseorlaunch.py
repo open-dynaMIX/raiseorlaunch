@@ -130,10 +130,14 @@ class RolBase(ABC):
         else:
             scratch = True
 
+        wm_class = win['window_properties']['class'].encode('utf-8')
+        wm_instance = win['window_properties']['instance'].encode('utf-8')
+        wm_title = win['window_properties'].get('title', '').encode('utf-8')
+
         result = {'id': win['window'],
-                  'wm_class': win['window_properties']['class'],
-                  'wm_instance': win['window_properties']['instance'],
-                  'wm_title': win['window_properties'].get('title', ''),
+                  'wm_class': wm_class,
+                  'wm_instance': wm_instance,
+                  'wm_title': wm_title,
                   'workspace': workspace,
                   'focused': win['focused'],
                   'scratch': scratch}
@@ -173,7 +177,7 @@ class RolBase(ABC):
         else:
             self.command = '"{}"'.format(self.command)
         logger.debug('Executing command: {}'.format(self.command))
-        i3.exec(self.command)
+        i3.Exec(self.command)
 
     def _get_i3_tree(self):
         """
@@ -208,7 +212,7 @@ class RolBase(ABC):
         for ws in i3.get_workspaces():
             if ws['focused']:
                 logger.debug('Currently focused workspace: {}'
-                             .format(ws['name']))
+                             .format(ws['name'].encode('utf-8')))
                 return ws['name']
 
     def get_window_properties(self,
