@@ -81,7 +81,8 @@ Usage and options
 ::
 
     usage: raiseorlaunch [-h] [-c WM_CLASS] [-s WM_INSTANCE] [-t WM_TITLE]
-                         [-e COMMAND] [-w WORKSPACE] [-r] [-i] [-d] [-v]
+                         [-e COMMAND] [--no-startup-id] [-w WORKSPACE] [-r] [-i]
+                         [-d] [-v]
 
     A run-or-raise-application-launcher for i3 window manager.
 
@@ -94,9 +95,12 @@ Usage and options
       -t WM_TITLE, --title WM_TITLE
                             the window title regex
       -e COMMAND, --exec COMMAND
-                            command to execute. If omitted, -c, -s or -t will be
-                            used (lower-case). Careful: The command will not be
-                            checked prior to execution!
+                            command to run with exec. If omitted, -c, -s or -t
+                            will be used (lower-case). The command will always be
+                            quoted, so make sure you properly escape internal
+                            quotation marks. See the README for examples. Careful:
+                            The command will not be checked prior to execution!
+      --no-startup-id       use --no-startup-id when running command with exec
       -w WORKSPACE, --workspace WORKSPACE
                             workspace to use
       -r, --scratch         use scratchpad
@@ -144,6 +148,38 @@ e.g.
     bindsym $mod+s exec --no-startup-id raiseorlaunch -w SL -c "^Sublime" -s sublime_text -e subl
 
 for binding `$mod+s` to raise or launch sublime text.
+
+Escaping quotation marks
+------------------------
+
+If using a single-word command like `qutebrowser`, no quotation marks are
+necessary. But for more complicated commands you will need them.
+
+If the command itself also contains quotes, they need to get escaped properly.
+
+Here are some exmaples:
+
+On the CLI
+**********
+::
+
+    raiseorlaunch -w 1 -c some_class -e "notify-send \\\"Hello, i3; from $USER\\\"; notify-send \\\"another message;\\\"" --no-startup-id
+                                        ^ using double-quotes                 ^ three backslashes
+    raiseorlaunch -w 1 -c some_class -e 'notify-send \"Hello, i3; from $USER\"; notify-send \"another message;\"' --no-startup-id
+                                        ^ using single-quotes               ^ one backslash
+
+Using bindsym
+*************
+When using raiseorlaunch with `exec`, things will get even a little more crazy.
+
+In this examples we need to use `--no-startup-id` for execing raiseorlaunch. We
+also need the same flag for raiseorlaunch, because the command run with it also
+doesn't support startup-notifications.
+
+::
+
+    bindsym $mod+c exec --no-startup-id "raiseorlaunch -w 1 -c some_class -e 'notify-send \\\\"Hello, i3; from $USER\\\\"; notify-send \\\\"another message;\\\\"' --no-startup-id"
+                                                                             ^ use single-quotes for -e             ^ four backslashes
 
 
 Known problems

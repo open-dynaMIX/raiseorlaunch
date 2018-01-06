@@ -17,7 +17,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='raiseorlaunch',
-    version='0.2.3',
+    version='1.0.0',
     description='A run-or-raise-application-launcher for i3 window manager.',
     long_description=long_description,
     url='https://github.com/open-dynaMIX/raiseorlaunch',

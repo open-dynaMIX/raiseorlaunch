@@ -87,11 +87,18 @@ def parse_arguments():
     parser.set_defaults(wm_title='')
 
     parser.add_argument('-e', '--exec', dest='command',
-                        help='command to execute. If omitted, -c, -s or '
-                        '-t will be used (lower-case). '
-                        'Careful: The command will not be checked '
+                        help='command to run with exec. If omitted, -c, -s or '
+                        '-t will be used (lower-case). The command will '
+                        'always be quoted, so make sure you properly escape '
+                        'internal quotation marks. See the README for '
+                        'examples. Careful: The command will not be checked '
                         'prior to execution!')
     parser.set_defaults(command=None)
+
+    parser.add_argument('--no-startup-id', dest='no_startup_id',
+                        action='store_true',
+                        help='use --no-startup-id when running command with '
+                        'exec')
 
     parser.add_argument('-w', '--workspace', dest='workspace',
                         help='workspace to use')
@@ -137,6 +144,7 @@ def main():
                                 wm_instance=args.wm_instance,
                                 wm_title=args.wm_title,
                                 ignore_case=args.ignore_case,
+                                no_startup_id=args.no_startup_id,
                                 scratch=args.scratch)
         else:
             rol = RaiseorlaunchWorkspace(command=args.command,
@@ -144,6 +152,7 @@ def main():
                                          wm_instance=args.wm_instance,
                                          wm_title=args.wm_title,
                                          ignore_case=args.ignore_case,
+                                         no_startup_id=args.no_startup_id,
                                          workspace=args.workspace)
     except TypeError as e:
         if str(e) == ('You need to specify '
