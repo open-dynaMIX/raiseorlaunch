@@ -11,7 +11,7 @@ from __future__ import print_function
 
 __title__ = 'raiseorlaunch'
 __description__ = 'A run-or-raise-application-launcher for i3 window manager.'
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 __license__ = 'MIT'
 __author__ = 'Fabio Rämi'
 
@@ -130,9 +130,9 @@ class RolBase(ABC):
         else:
             scratch = True
 
-        wm_class = win['window_properties']['class'].encode('utf-8')
-        wm_instance = win['window_properties']['instance'].encode('utf-8')
-        wm_title = win['window_properties'].get('title', '').encode('utf-8')
+        wm_class = win['window_properties']['class']
+        wm_instance = win['window_properties']['instance']
+        wm_title = win['window_properties'].get('title', '')
 
         result = {'id': win['window'],
                   'wm_class': wm_class,
