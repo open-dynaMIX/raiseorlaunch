@@ -170,7 +170,11 @@ On the CLI
 
 Using bindsym
 *************
-When using raiseorlaunch with `exec`, things will get even a little more crazy:
+When using raiseorlaunch with `exec`, things will get even a little more crazy.
+
+In this examples we need to use `--no-startup-id` for execing raisorlaunch. We
+also need the same flag for raiseorlaunch, because the command run with it also
+doesn't support startup-notifications.
 
 ::
 
