@@ -6,7 +6,7 @@ for i3 window manager.
 """
 
 
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 
 __title__ = 'raiseorlaunch'
@@ -30,7 +30,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 # compatible with Python 2 *and* 3:
-ABC = abc.ABCMeta('ABC', (object,), {'__slots__': ()})
+ABC = abc.ABCMeta(str('ABC'), (object,), {'__slots__': ()})
 
 
 class RolBase(ABC):
@@ -212,7 +212,7 @@ class RolBase(ABC):
         for ws in i3.get_workspaces():
             if ws['focused']:
                 logger.debug('Currently focused workspace: {}'
-                             .format(ws['name'].encode('utf-8')))
+                             .format(ws['name']))
                 return ws['name']
 
     def get_window_properties(self,
@@ -405,7 +405,7 @@ class RaiseorlaunchWorkspace(RolBase):
         Returns:
             dict: The current i3 tree from the provided workspace.
         """
-        logger.debug('Getting i3 tree for workspace: {}.'
+        logger.debug('Getting i3 tree for workspace: {}'
                      .format(self.workspace))
         return i3.filter(name=self.workspace)
 
