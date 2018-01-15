@@ -6,6 +6,8 @@ This is the CLI for raiseorlaunch. A run-or-raise-application-launcher
 for i3 window manager.
 """
 
+from __future__ import unicode_literals
+import sys
 import os
 import argparse
 from distutils import spawn
@@ -65,6 +67,16 @@ def check_args(parser, args):
         parser.error('You cannot use the scratchpad on a specific workspace.')
 
 
+def commandline_string_arg(string):
+    """
+    Python2 compatibility.
+    """
+    if sys.version_info[0] == 2:
+        return string.decode('utf-8')
+    else:
+        return string
+
+
 def parse_arguments():
     """
     Parse all arguments.
@@ -75,18 +87,22 @@ def parse_arguments():
                                      RawDescriptionHelpFormatter)
 
     parser.add_argument('-c', '--class', dest='wm_class',
+                        type=commandline_string_arg,
                         help='the window class regex')
     parser.set_defaults(wm_class='')
 
     parser.add_argument('-s', '--instance', dest='wm_instance',
+                        type=commandline_string_arg,
                         help='the window instance regex')
     parser.set_defaults(wm_instance='')
 
     parser.add_argument('-t', '--title', dest='wm_title',
+                        type=commandline_string_arg,
                         help='the window title regex')
     parser.set_defaults(wm_title='')
 
     parser.add_argument('-e', '--exec', dest='command',
+                        type=commandline_string_arg,
                         help='command to run with exec. If omitted, -c, -s or '
                         '-t will be used (lower-case). The command will '
                         'always be quoted, so make sure you properly escape '
@@ -101,6 +117,7 @@ def parse_arguments():
                         'exec')
 
     parser.add_argument('-w', '--workspace', dest='workspace',
+                        type=commandline_string_arg,
                         help='workspace to use')
     parser.set_defaults(workspace=None)
 
