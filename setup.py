@@ -32,7 +32,7 @@ setup(
         'Programming Language :: Python :: 3',
     ],
     keywords='i3 i3wm launcher run-or-raise navigation workspace scratchpad',
-    install_requires=['i3-py'],
+    install_requires=['i3ipc'],
     packages=['raiseorlaunch'],
     entry_points={
         'console_scripts': [
