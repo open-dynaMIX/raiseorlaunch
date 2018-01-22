@@ -165,17 +165,12 @@ class RolBase(ABC):
         Returns:
             bool: True for match, False otherwise.
         """
-        if self.wm_class:
-            if not self.match_regex(self.wm_class, window.window_class):
-                return False
-
-        if self.wm_instance:
-            if not self.match_regex(self.wm_instance, window.window_instance):
-                return False
-
-        if self.wm_title:
-            if not self.match_regex(self.wm_title, window.name):
-                return False
+        for (pattern, value) in [(self.wm_class, window.window_class),
+                                 (self.wm_instance, window.window_instance),
+                                 (self.wm_title, window.name)]:
+            if pattern:
+                if not self.match_regex(pattern, value):
+                    return False
 
         logger.debug('Window match: {}'.format(self._log_format_con(window)))
         return True
@@ -265,18 +260,6 @@ class RolBase(ABC):
                              'functionality.')
                 self.switch_workspace(current_ws)
 
-    def _callback_new_window(self, c, e):
-        logger.debug('WindowEvent callback')
-
-        timediff = datetime.now() - self.timestamp
-        if timediff.seconds > self.timelimit:
-            exit(0)
-
-        if self._compare_running(e.container):
-            if self.scratch:
-                self.move_scratch(e.container)
-                self.show_scratch(e.container)
-
 
 class Raiseorlaunch(RolBase):
     """
@@ -312,12 +295,10 @@ class Raiseorlaunch(RolBase):
         """
         found = []
         for leave in window_list:
+            if self.scratch and not leave.parent.scratchpad_state == 'changed':
+                continue
             if self._compare_running(leave):
-                if self.scratch:
-                    if leave.parent.scratchpad_state == 'changed':
-                        found.append(leave)
-                else:
-                    found.append(leave)
+                found.append(leave)
 
         if len(found) > 1:
             logger.warning('Found multiple windows that match the properties. '
@@ -351,6 +332,18 @@ class Raiseorlaunch(RolBase):
             self.i3.main()
         else:
             self._run_command()
+
+    def _callback_new_window(self, c, e):
+        logger.debug('WindowEvent callback')
+
+        timediff = datetime.now() - self.timestamp
+        if timediff.seconds > self.timelimit:
+            exit(0)
+
+        if self._compare_running(e.container):
+            if self.scratch:
+                self.move_scratch(e.container)
+                self.show_scratch(e.container)
 
     def run(self):
         """
