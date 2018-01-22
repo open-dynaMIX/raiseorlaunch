@@ -334,7 +334,8 @@ class Raiseorlaunch(RolBase):
             self._run_command()
 
     def _callback_new_window(self, c, e):
-        logger.debug('WindowEvent callback')
+        logger.debug('WindowEvent callback: {}'
+                     .format(self._log_format_con(e.container)))
 
         timediff = datetime.now() - self.timestamp
         if timediff.seconds > self.timelimit:
