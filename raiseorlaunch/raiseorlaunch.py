@@ -182,8 +182,7 @@ class RolBase(ABC):
 
     def is_running(self, window_list):
         """
-        Convenience method to fetch the i3 tree, extract the window
-        properties and find window matching provided properties.
+        Compare windows in list with provided properties.
 
         Args:
             window_list: Instances of Con()
@@ -214,8 +213,8 @@ class RolBase(ABC):
         Returns:
             bool: True if successful, False otherwise.
         """
-        logger.debug('Moving newly created window with id: {} to the '
-                     'scratchpad.'.format(self._log_format_con(window)))
+        logger.debug('Moving newly created window to the scratchpad: {}'
+                     .format(self._log_format_con(window)))
         window.command('move scratchpad')
 
     def show_scratch(self, window):
@@ -247,6 +246,25 @@ class RolBase(ABC):
             'workspace {}'.format(workspace.name)
             )[0]['success']
 
+    def _handle_running(self, running, current_ws):
+        """
+        Handle app is running and not explicitly using scratchpad.
+
+        Args:
+            running (dict): {'id': int, 'scratch': bool, 'focused': bool}
+            current_ws (str): currently used workspace.
+        """
+        if not running.focused:
+            self.focus_window(running)
+            running.command('focus')
+        else:
+            if current_ws.name == self.get_current_workspace().name:
+                logger.debug('We\'re on the right workspace. '
+                             'Switching anyway to retain '
+                             'workspace_back_and_forth '
+                             'functionality.')
+                self.switch_workspace(current_ws)
+
     def _callback_new_window(self, c, e):
         logger.debug('WindowEvent callback')
 
@@ -255,13 +273,9 @@ class RolBase(ABC):
             exit(0)
 
         if self._compare_running(e.container):
-            done = False
             if self.scratch:
                 self.move_scratch(e.container)
                 self.show_scratch(e.container)
-                done = True
-            if done:
-                exit(0)
 
 
 class Raiseorlaunch(RolBase):
@@ -282,28 +296,36 @@ class Raiseorlaunch(RolBase):
             self.scratch = False
 
         self.timestamp = None
-        self.timelimit = 5
+        self.timelimit = 7
 
         super(Raiseorlaunch, self).__init__(*args, **kwargs)
 
-    def _handle_running_not_scratch(self, running, current_ws):
+    def is_running(self, window_list):
         """
-        Handle app is running and not explicitly using scratchpad.
+        Compare windows in list with provided properties.
 
         Args:
-            running (dict): {'id': int, 'scratch': bool, 'focused': bool}
-            current_ws (str): currently used workspace.
+            window_list: Instances of Con()
+
+        Returns:
+            Con() instance if found, None otherwise.
         """
-        if not running.focused:
-            self.focus_window(running)
-            running.command('focus')
-        else:
-            if current_ws.name == self.get_current_workspace().name:
-                logger.debug('We\'re on the right workspace. '
-                             'Switching anyway to retain '
-                             'workspace_back_and_forth '
-                             'functionality.')
-                self.switch_workspace(current_ws)
+        found = []
+        for leave in window_list:
+            if self._compare_running(leave):
+                if self.scratch:
+                    if leave.parent.scratchpad_state == 'changed':
+                        found.append(leave)
+                else:
+                    found.append(leave)
+
+        if len(found) > 1:
+            logger.warning('Found multiple windows that match the properties. '
+                           'Using the first found.')
+        elif len(found) < 1:
+            return None
+
+        return found[0]
 
     def _handle_running_scratch(self, running, current_ws):
         """
@@ -340,12 +362,13 @@ class Raiseorlaunch(RolBase):
             running = self.is_running(window_list)
             current_ws = self.get_current_workspace()
             if running:
-                logger.debug('Application is running: {}'.format(
-                    self._log_format_con(running)))
+                logger.debug('Application is running on workspace "{}": {}'
+                             .format(current_ws.name,
+                                     self._log_format_con(running)))
                 if running.parent.scratchpad_state == 'changed':
                     self._handle_running_scratch(running, current_ws)
                 else:
-                    self._handle_running_not_scratch(running, current_ws)
+                    self._handle_running(running, current_ws)
             else:
                 logger.debug('Application is not running.')
                 self._handle_not_running()
@@ -404,17 +427,9 @@ class RaiseorlaunchWorkspace(RolBase):
             running = self.is_running(window_list)
             if running:
                 logger.debug('Application is running on workspace "{}": {}'
-                             .format(self.workspace,
+                             .format(current_ws.name,
                                      self._log_format_con(running)))
-                if not running.focused:
-                    self.focus_window(running)
-                else:
-                    if current_ws.name == self.workspace:
-                        logger.debug('We\'re on the right workspace. '
-                                     'Switching anyway to retain '
-                                     'workspace_back_and_forth '
-                                     'functionality.')
-                        self.switch_workspace(current_ws)
+                self._handle_running(running, current_ws)
             else:
                 self._handle_not_running(current_ws)
         else:
