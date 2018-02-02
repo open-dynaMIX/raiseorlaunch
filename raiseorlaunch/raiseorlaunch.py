@@ -406,7 +406,7 @@ class RaiseorlaunchWorkspace(RolBase):
 
     def _handle_not_running(self, current_ws):
         logger.debug('Application is not running.')
-        if not current_ws == self.workspace:
+        if not current_ws.name == self.workspace:
             self.i3.command('workspace {}'.format(self.workspace))
         self._run_command()
 
