@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
@@ -17,7 +17,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='raiseorlaunch',
-    version='1.0.1',
+    version='2.0.0',
     description='A run-or-raise-application-launcher for i3 window manager.',
     long_description=long_description,
     url='https://github.com/open-dynaMIX/raiseorlaunch',
@@ -28,7 +28,6 @@ setup(
         'Development Status :: 4 - Beta',
         'Intended Audience :: End Users/Desktop',
         'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
     ],
     keywords='i3 i3wm launcher run-or-raise navigation workspace scratchpad',

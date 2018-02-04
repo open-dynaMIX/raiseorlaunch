@@ -43,7 +43,8 @@ Manual
 Dependencies
 ~~~~~~~~~~~~
 
-- `i3-py <https://github.com/ziberna/i3-py>`__
+- python3
+- `i3ipc-python <https://github.com/acrisci/i3ipc-python>`__
 
 Install
 ~~~~~~~~~~~~
@@ -58,7 +59,7 @@ This can be prevented, if creating a wheel first and installing that (needs
 .. code:: shell
 
     python setup.py bdist_wheel
-    pip install ./dist/raiseorlaunch-${VERSION}-py2.py3-none-any.whl
+    pip install ./dist/raiseorlaunch-${VERSION}-py3-none-any.whl
 
 Run without installation
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -96,10 +97,8 @@ Usage and options
                             the window title regex
       -e COMMAND, --exec COMMAND
                             command to run with exec. If omitted, -c, -s or -t
-                            will be used (lower-case). The command will always be
-                            quoted, so make sure you properly escape internal
-                            quotation marks. See the README for examples. Careful:
-                            The command will not be checked prior to execution!
+                            will be used (lower-case). Careful: The command will
+                            not be checked prior to execution!
       --no-startup-id       use --no-startup-id when running command with exec
       -w WORKSPACE, --workspace WORKSPACE
                             workspace to use
@@ -149,38 +148,9 @@ e.g.
 
 for binding `$mod+s` to raise or launch sublime text.
 
-Escaping quotation marks
-------------------------
-
-If using a single-word command like `qutebrowser`, no quotation marks are
-necessary. But for more complicated commands you will need them.
-
-If the command itself also contains quotes, they need to get escaped properly.
-
-Here are some exmaples:
-
-On the CLI
-**********
-::
-
-    raiseorlaunch -w 1 -c some_class -e "notify-send \\\"Hello, i3; from $USER\\\"; notify-send \\\"another message;\\\"" --no-startup-id
-                                        ^ using double-quotes                 ^ three backslashes
-    raiseorlaunch -w 1 -c some_class -e 'notify-send \"Hello, i3; from $USER\"; notify-send \"another message;\"' --no-startup-id
-                                        ^ using single-quotes               ^ one backslash
-
-Using bindsym
-*************
-When using raiseorlaunch with `exec`, things will get even a little more crazy.
-
-In this examples we need to use `--no-startup-id` for execing raiseorlaunch. We
-also need the same flag for raiseorlaunch, because the command run with it also
-doesn't support startup-notifications.
-
-::
-
-    bindsym $mod+c exec --no-startup-id "raiseorlaunch -w 1 -c some_class -e 'notify-send \\\\"Hello, i3; from $USER\\\\"; notify-send \\\\"another message;\\\\"' --no-startup-id"
-                                                                             ^ use single-quotes for -e             ^ four backslashes
-
+Quotation marks
+---------------
+The command will not be quoted when calling `exec`. Make sure you properly escape any needed quotation marks. For simple commands there is no need to do anything.
 
 Known problems
 --------------
