@@ -82,8 +82,8 @@ Usage and options
 ::
 
     usage: raiseorlaunch [-h] [-c WM_CLASS] [-s WM_INSTANCE] [-t WM_TITLE]
-                         [-e COMMAND] [--no-startup-id] [-w WORKSPACE] [-r] [-i]
-                         [-d] [-v]
+                         [-e COMMAND] [--no-startup-id] [-w WORKSPACE] [-r]
+                         [-m CON_MARK] [-i] [-l EVENT_TIME_LIMIT] [-d] [-v]
 
     A run-or-raise-application-launcher for i3 window manager.
 
@@ -103,7 +103,12 @@ Usage and options
       -w WORKSPACE, --workspace WORKSPACE
                             workspace to use
       -r, --scratch         use scratchpad
+      -m CON_MARK, --mark CON_MARK
+                            con_mark to use when raising and set when launching
       -i, --ignore-case     ignore case when comparing
+      -l EVENT_TIME_LIMIT, --event-time-limit EVENT_TIME_LIMIT
+                            Time limit in seconds to listen to window events when
+                            using the scratchpad. Defaults to 2.
       -d, --debug           display debug messages
       -v, --version         show program's version number and exit
 

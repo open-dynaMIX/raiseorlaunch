@@ -52,11 +52,12 @@ class Raiseorlaunch(object):
 
     def __init__(self,
                  command,
-                 wm_class='',
-                 wm_instance='',
-                 wm_title='',
-                 workspace='',
+                 wm_class=None,
+                 wm_instance=None,
+                 wm_title=None,
+                 workspace=None,
                  scratch=False,
+                 con_mark=None,
                  ignore_case=False,
                  no_startup_id=False,
                  event_time_limit=2):
@@ -66,6 +67,7 @@ class Raiseorlaunch(object):
         self.wm_title = wm_title
         self.workspace = workspace
         self.scratch = scratch
+        self.con_mark = con_mark
         self.ignore_case = ignore_case
         self.no_startup_id = no_startup_id
         self.event_time_limit = event_time_limit if event_time_limit else 2
@@ -76,6 +78,11 @@ class Raiseorlaunch(object):
 
         if self.ignore_case:
             self.regex_flags.append(re.IGNORECASE)
+
+        if self.scratch:
+            self._handle_running_method = self._handle_running_scratch
+        else:
+            self._handle_running_method = self._handle_running
 
         self._check_args()
 
@@ -162,7 +169,7 @@ class Raiseorlaunch(object):
         logger.debug('Window match: {}'.format(self._log_format_con(window)))
         return True
 
-    def _is_running(self, window_list):
+    def _is_running(self):
         """
         Compare windows in list with provided properties.
 
@@ -172,16 +179,18 @@ class Raiseorlaunch(object):
         Returns:
             Con() instance if found, None otherwise.
         """
-        found = []
-        for leave in window_list:
-            if self.scratch and not leave.parent.scratchpad_state == 'changed':
-                continue
-            if self._compare_running(leave):
-                found.append(leave)
+        if self.con_mark:
+            found = self.tree.find_marked(self.con_mark)
+        else:
+            window_list = self._get_window_list()
+            found = []
+            for leave in window_list:
+                if self._compare_running(leave):
+                    found.append(leave)
 
-        if len(found) > 1:
-            logger.warning('Found multiple windows that match the properties. '
-                           'Using one at random.')
+            if len(found) > 1:
+                logger.warning('Found multiple windows that match the '
+                               'properties. Using one at random.')
 
         return found[0] if found else None
 
@@ -195,7 +204,6 @@ class Raiseorlaunch(object):
         """
         if not window.focused:
             self.focus_window(window)
-            window.command('focus')
         else:
             if current_ws.name == self.get_current_workspace().name:
                 logger.debug('We\'re on the right workspace. '
@@ -224,7 +232,7 @@ class Raiseorlaunch(object):
         """
         Handle app is not running.
         """
-        if self.scratch:
+        if self.scratch or self.con_mark:
             self.i3.on("window::new", self._callback_new_window)
             self.run_command()
             self.timestamp = datetime.now()
@@ -239,6 +247,9 @@ class Raiseorlaunch(object):
     def _callback_new_window(self, connection, event):
         """
         Callback function for window::new events.
+
+        This handles moving new windows to the scratchpad
+        and settinh con_marks.
         """
         logger.debug('WindowEvent callback: {}'
                      .format(self._log_format_con(event.container)))
@@ -252,6 +263,20 @@ class Raiseorlaunch(object):
             if self.scratch:
                 self.move_scratch(event.container)
                 self.show_scratch(event.container)
+            if self.con_mark:
+                self.set_con_mark(event.container)
+
+    def set_con_mark(self, window):
+        """
+        Set con_mark on window.
+
+        Args:
+            window: Instance of Con()
+        """
+        logger.debug('Setting con_mark "{}" on window: {}'
+                     .format(self.con_mark,
+                             self._log_format_con(window)))
+        window.command('mark {}'.format(self.con_mark))
 
     def run_command(self):
         """
@@ -308,7 +333,7 @@ class Raiseorlaunch(object):
         Returns:
             bool: True if successful, False otherwise.
         """
-        logger.debug('Showing scratch window: {}'.format(
+        logger.debug('Toggling visibility of scratch window: {}'.format(
             self._log_format_con(window)))
         window.command('scratchpad show')
 
@@ -332,21 +357,13 @@ class Raiseorlaunch(object):
         Search for running window that matches provided properties
         and act accordingly.
         """
-        window_list = self._get_window_list()
-        if window_list:
-            running = self._is_running(window_list)
-            if running:
-                current_ws = self.get_current_workspace()
-                logger.debug('Application is running on workspace "{}": {}'
-                             .format(current_ws.name,
-                                     self._log_format_con(running)))
-                if self.scratch:
-                    self._handle_running_scratch(running, current_ws)
-                else:
-                    self._handle_running(running, current_ws)
-            else:
-                logger.debug('Application is not running.')
-                self._handle_not_running()
+        running = self._is_running()
+        if running:
+            current_ws = self.get_current_workspace()
+            logger.debug('Application is running on workspace "{}": {}'
+                         .format(current_ws.name,
+                                 self._log_format_con(running)))
+            self._handle_running_method(running, current_ws)
         else:
             logger.debug('Application is not running.')
             self._handle_not_running()

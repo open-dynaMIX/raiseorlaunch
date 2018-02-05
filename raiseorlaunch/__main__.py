@@ -81,15 +81,12 @@ def parse_arguments():
 
     parser.add_argument('-c', '--class', dest='wm_class',
                         help='the window class regex')
-    parser.set_defaults(wm_class='')
 
     parser.add_argument('-s', '--instance', dest='wm_instance',
                         help='the window instance regex')
-    parser.set_defaults(wm_instance='')
 
     parser.add_argument('-t', '--title', dest='wm_title',
                         help='the window title regex')
-    parser.set_defaults(wm_title='')
 
     parser.add_argument('-e', '--exec', dest='command',
                         help='command to run with exec. If omitted, -c, -s or '
@@ -105,10 +102,13 @@ def parse_arguments():
 
     parser.add_argument('-w', '--workspace', dest='workspace',
                         help='workspace to use')
-    parser.set_defaults(workspace=None)
 
     parser.add_argument('-r', '--scratch', dest='scratch',
                         action='store_true', help='use scratchpad')
+
+    parser.add_argument('-m', '--mark', dest='con_mark',
+                        help='con_mark to use when raising and set when '
+                        'launching')
 
     parser.add_argument('-i', '--ignore-case', dest='ignore_case',
                         action='store_true', help='ignore case when comparing')
@@ -149,17 +149,13 @@ def main():
                             wm_instance=args.wm_instance,
                             wm_title=args.wm_title,
                             scratch=args.scratch,
+                            con_mark=args.con_mark,
                             workspace=args.workspace,
                             ignore_case=args.ignore_case,
                             no_startup_id=args.no_startup_id,
                             event_time_limit=args.event_time_limit)
     except TypeError as e:
-        if str(e) == ('You need to specify '
-                      '"wm_class", "wm_instance" or "wm_title".'):
-            parser.error('You need to specify at least one argument out '
-                         'of -c, -s or -t.')
-        else:
-            parser.error(str(e))
+        parser.error(str(e))
 
     rol.run()
 
