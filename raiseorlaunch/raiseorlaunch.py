@@ -249,7 +249,7 @@ class Raiseorlaunch(object):
         Callback function for window::new events.
 
         This handles moving new windows to the scratchpad
-        and settinh con_marks.
+        and setting con_marks.
         """
         logger.debug('WindowEvent callback: {}'
                      .format(self._log_format_con(event.container)))
