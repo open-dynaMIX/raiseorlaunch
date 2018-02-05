@@ -82,8 +82,8 @@ Usage and options
 ::
 
     usage: raiseorlaunch [-h] [-c WM_CLASS] [-s WM_INSTANCE] [-t WM_TITLE]
-                         [-e COMMAND] [--no-startup-id] [-w WORKSPACE] [-r]
-                         [-m CON_MARK] [-i] [-l EVENT_TIME_LIMIT] [-d] [-v]
+                         [-e COMMAND] [-w WORKSPACE] [-r] [-m CON_MARK]
+                         [-l EVENT_TIME_LIMIT] [-i] [-d] [-v]
 
     A run-or-raise-application-launcher for i3 window manager.
 
@@ -99,16 +99,15 @@ Usage and options
                             command to run with exec. If omitted, -c, -s or -t
                             will be used (lower-case). Careful: The command will
                             not be checked prior to execution!
-      --no-startup-id       use --no-startup-id when running command with exec
       -w WORKSPACE, --workspace WORKSPACE
                             workspace to use
       -r, --scratch         use scratchpad
       -m CON_MARK, --mark CON_MARK
                             con_mark to use when raising and set when launching
-      -i, --ignore-case     ignore case when comparing
       -l EVENT_TIME_LIMIT, --event-time-limit EVENT_TIME_LIMIT
                             Time limit in seconds to listen to window events when
                             using the scratchpad. Defaults to 2.
+      -i, --ignore-case     ignore case when comparing
       -d, --debug           display debug messages
       -v, --version         show program's version number and exit
 
@@ -135,6 +134,20 @@ Raise or launch SpeedCrunch and use the scratchpad:
 .. code:: shell
 
     raiseorlaunch -r -c SpeedCrunch
+
+Use a script to start application:
+
+.. code:: shell
+
+    raiseorlaunch -r -c SpeedCrunch -e "--no-startup-id my-cool-script.sh"
+
+Raise the window with the con_mark `wiki`. If not found, execute command and
+mark the new window matching the provided properties. Set the time limit to
+wait for a new window to 3 seconds:
+
+.. code:: shell
+
+    raiseorlaunch -c Firefox -s Navigator -e "firefox --new-window https://wiki.archlinux.org/" -m wiki -l 3
 
 i3 bindsym
 **********

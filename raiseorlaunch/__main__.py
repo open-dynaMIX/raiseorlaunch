@@ -10,7 +10,7 @@ import os
 import argparse
 from distutils import spawn
 import logging
-from raiseorlaunch import (Raiseorlaunch,
+from raiseorlaunch import (Raiseorlaunch, RaiseorlaunchError,
                            __title__, __version__, __description__)
 
 
@@ -21,19 +21,19 @@ def verify_app(parser, application):
     """
     Verify the executable if not provided with -e.
     """
-    def error_handle():
+    def raise_exception():
         """
-        Handle a verify_app error.
+        Raise a parser error.
         """
         parser.error('{} is not an executable! Did you forget to supply -e?'
                      .format(application))
 
     is_exe = spawn.find_executable(application)
     if not is_exe:
-        error_handle()
+        raise_exception()
     elif is_exe == application:
         if not os.access(application, os.X_OK):
-            error_handle()
+            raise_exception()
     return application
 
 
@@ -58,16 +58,19 @@ def set_command(parser, args):
 
 
 def check_positive(value):
-    def raise_error():
-        raise argparse.ArgumentTypeError('{} is not a positive integer'
-                                         .format(value))
+    def raise_exception():
+        """
+        Raise an ArgumentTypeError.
+        """
+        raise argparse.ArgumentTypeError('{} is not a positive integer or '
+                                         'float'.format(value))
     try:
-        ivalue = int(value)
+        fvalue = float(value)
     except ValueError:
-        raise_error()
-    if ivalue <= 0:
-        raise_error()
-    return ivalue
+        raise_exception()
+    if fvalue <= 0:
+        raise_exception()
+    return fvalue
 
 
 def parse_arguments():
@@ -95,11 +98,6 @@ def parse_arguments():
                         'prior to execution!')
     parser.set_defaults(command=None)
 
-    parser.add_argument('--no-startup-id', dest='no_startup_id',
-                        action='store_true',
-                        help='use --no-startup-id when running command with '
-                        'exec')
-
     parser.add_argument('-w', '--workspace', dest='workspace',
                         help='workspace to use')
 
@@ -110,13 +108,13 @@ def parse_arguments():
                         help='con_mark to use when raising and set when '
                         'launching')
 
-    parser.add_argument('-i', '--ignore-case', dest='ignore_case',
-                        action='store_true', help='ignore case when comparing')
-
     parser.add_argument('-l', '--event-time-limit', dest='event_time_limit',
                         type=check_positive, help='Time limit in seconds to '
                         'listen to window events when using the scratchpad. '
                         'Defaults to 2.')
+
+    parser.add_argument('-i', '--ignore-case', dest='ignore_case',
+                        action='store_true', help='ignore case when comparing')
 
     parser.add_argument('-d', '--debug', dest='debug',
                         help='display debug messages',
@@ -152,9 +150,8 @@ def main():
                             con_mark=args.con_mark,
                             workspace=args.workspace,
                             ignore_case=args.ignore_case,
-                            no_startup_id=args.no_startup_id,
                             event_time_limit=args.event_time_limit)
-    except TypeError as e:
+    except RaiseorlaunchError as e:
         parser.error(str(e))
 
     rol.run()

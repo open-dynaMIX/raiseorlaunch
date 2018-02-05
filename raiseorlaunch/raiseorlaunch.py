@@ -27,10 +27,13 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+class RaiseorlaunchError(Exception):
+    pass
+
+
 class Raiseorlaunch(object):
     """
-
-    Base class for raiseorlaunch.
+    Main class for raiseorlaunch.
 
     Args:
         command (str): The command to execute, if no matching window was found.
@@ -42,12 +45,9 @@ class Raiseorlaunch(object):
         ignore_case (bool, optional): Ignore case when comparing
                                       window-properties with provided
                                       arguments.
-        no_startup_id (bool, optional): use --no-startup-id when running
-                                        command with exec.
-        event_time_limit (integer, optional): Time limit in seconds to listen
-                                              to window events when using the
-                                              scratchpad.
-
+        event_time_limit (int or float, optional): Time limit in seconds to
+                                                   listen to window events
+                                                   when using the scratchpad.
     """
 
     def __init__(self,
@@ -59,7 +59,6 @@ class Raiseorlaunch(object):
                  scratch=False,
                  con_mark=None,
                  ignore_case=False,
-                 no_startup_id=False,
                  event_time_limit=2):
         self.command = command
         self.wm_class = wm_class
@@ -69,36 +68,31 @@ class Raiseorlaunch(object):
         self.scratch = scratch
         self.con_mark = con_mark
         self.ignore_case = ignore_case
-        self.no_startup_id = no_startup_id
         self.event_time_limit = event_time_limit if event_time_limit else 2
 
-        self.timestamp = None
-        self.windows = []
         self.regex_flags = []
-
         if self.ignore_case:
             self.regex_flags.append(re.IGNORECASE)
-
-        if self.scratch:
-            self._handle_running_method = self._handle_running_scratch
-        else:
-            self._handle_running_method = self._handle_running
 
         self._check_args()
 
         self.i3 = i3ipc.Connection()
         self.tree = self.i3.get_tree()
 
+        self._timestamp = None
+
     def _check_args(self):
         """
-        Verify that window properties are provided.
+        Verify that...
+         - ...window properties are provided.
+         - ...there is no workspace provided when using the scratchpad
         """
         if not self.wm_class and not self.wm_instance and not self.wm_title:
-            raise TypeError('You need to specify '
-                            '"wm_class", "wm_instance" or "wm_title.')
+            raise RaiseorlaunchError('You need to specify '
+                                     '"wm_class", "wm_instance" or "wm_title.')
         if self.workspace and self.scratch:
-            raise TypeError('You cannot use the scratchpad on a specific '
-                            'workspace.')
+            raise RaiseorlaunchError('You cannot use the scratchpad on a '
+                                     'specific workspace.')
 
     def _log_format_con(self, window):
         """
@@ -110,6 +104,40 @@ class Raiseorlaunch(object):
         return '<Con: class="{}" instance="{}" title="{}" id={}>'.format(
             window.window_class, window.window_instance, window.name,
             window.id)
+
+    def _match_regex(self, regex, string_to_match):
+        """
+        Match a regex with provided flags.
+
+        Args:
+            regex: The regex to use
+            string_to_match: The string we should match
+
+        Returns:
+            bool: True for match, False otherwise.
+        """
+        matchlist = [regex, string_to_match, *self.regex_flags]
+        return True if re.match(*matchlist) else False
+
+    def _compare_running(self, window):
+        """
+        Compare the properties of a running window with the ones provided.
+
+        Args:
+            window: Instance of Con().
+
+        Returns:
+            bool: True for match, False otherwise.
+        """
+        for (pattern, value) in [(self.wm_class, window.window_class),
+                                 (self.wm_instance, window.window_instance),
+                                 (self.wm_title, window.name)]:
+            if pattern:
+                if not self._match_regex(pattern, value):
+                    return False
+
+        logger.debug('Window match: {}'.format(self._log_format_con(window)))
+        return True
 
     def _get_window_list(self):
         """
@@ -133,41 +161,6 @@ class Raiseorlaunch(object):
             for workspace in workspaces:
                 if workspace.name == self.workspace:
                     return workspace.leaves()
-
-    def _match_regex(self, regex, string_to_match):
-        """
-        Match a regex with provided flags.
-
-        Args:
-            regex: The regex to use
-            string_to_match: The string we should match
-
-        Returns:
-            bool: True for match, False otherwise.
-        """
-        matchlist = [regex, string_to_match]
-        matchlist.extend(self.regex_flags)
-        return True if re.match(*matchlist) else False
-
-    def _compare_running(self, window):
-        """
-        Compare the properties of a running window with the ones provided.
-
-        Args:
-            window: Instance of Con().
-
-        Returns:
-            bool: True for match, False otherwise.
-        """
-        for (pattern, value) in [(self.wm_class, window.window_class),
-                                 (self.wm_instance, window.window_instance),
-                                 (self.wm_title, window.name)]:
-            if pattern:
-                if not self._match_regex(pattern, value):
-                    return False
-
-        logger.debug('Window match: {}'.format(self._log_format_con(window)))
-        return True
 
     def _is_running(self):
         """
@@ -235,7 +228,7 @@ class Raiseorlaunch(object):
         if self.scratch or self.con_mark:
             self.i3.on("window::new", self._callback_new_window)
             self.run_command()
-            self.timestamp = datetime.now()
+            self._timestamp = datetime.now()
             self.i3.main()
         else:
             if self.workspace:
@@ -251,20 +244,29 @@ class Raiseorlaunch(object):
         This handles moving new windows to the scratchpad
         and setting con_marks.
         """
-        logger.debug('WindowEvent callback: {}'
-                     .format(self._log_format_con(event.container)))
+        window = event.container
+        logger.debug('Event callback: {}'
+                     .format(self._log_format_con(window)))
 
-        timediff = datetime.now() - self.timestamp
+        timediff = datetime.now() - self._timestamp
         if timediff > timedelta(seconds=self.event_time_limit):
             logger.debug('Time limit exceeded. Exiting.')
             exit(0)
 
-        if self._compare_running(event.container):
+        if self._compare_running(window):
             if self.scratch:
-                self.move_scratch(event.container)
-                self.show_scratch(event.container)
+                self.move_scratch(window)
+                self.show_scratch(window)
             if self.con_mark:
-                self.set_con_mark(event.container)
+                self.set_con_mark(window)
+
+    def run_command(self):
+        """
+        Run the specified command with exec.
+        """
+        command = 'exec {}'.format(self.command)
+        logger.debug('Executing command: {}'.format(command))
+        self.i3.command(command)
 
     def set_con_mark(self, window):
         """
@@ -277,17 +279,6 @@ class Raiseorlaunch(object):
                      .format(self.con_mark,
                              self._log_format_con(window)))
         window.command('mark {}'.format(self.con_mark))
-
-    def run_command(self):
-        """
-        Run the specified command with exec.
-        """
-        if self.no_startup_id:
-            self.command = 'exec --no-startup-id {}'.format(self.command)
-        else:
-            self.command = 'exec {}'.format(self.command)
-        logger.debug('Executing command: {}'.format(self.command))
-        self.i3.command(self.command)
 
     def focus_window(self, window):
         """
@@ -348,9 +339,7 @@ class Raiseorlaunch(object):
             bool: True if successful, False otherwise.
         """
         logger.debug('Switching to workspace: {}'.format(name))
-        return self.i3.command(
-            'workspace {}'.format(name)
-            )[0]['success']
+        self.i3.command('workspace {}'.format(name))
 
     def run(self):
         """
@@ -363,7 +352,10 @@ class Raiseorlaunch(object):
             logger.debug('Application is running on workspace "{}": {}'
                          .format(current_ws.name,
                                  self._log_format_con(running)))
-            self._handle_running_method(running, current_ws)
+            if self.scratch:
+                self._handle_running_scratch(running, current_ws)
+            else:
+                self._handle_running(running, current_ws)
         else:
             logger.debug('Application is not running.')
             self._handle_not_running()
