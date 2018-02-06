@@ -162,6 +162,20 @@ class Raiseorlaunch(object):
                 if workspace.name == self.workspace:
                     return workspace.leaves()
 
+    def _find_marked_window(self):
+        """
+        Find window with given mark. Restrict to given workspace
+        if self.workspace is set.
+
+        Returns:
+            list: Containing one instance of Con() if found, None otherwise
+        """
+        found = self.tree.find_marked(self.con_mark)
+        if found and self.workspace:
+            if not found[0].workspace().name == self.workspace:
+                found = None
+        return found
+
     def _is_running(self):
         """
         Compare windows in list with provided properties.
@@ -173,7 +187,7 @@ class Raiseorlaunch(object):
             Con() instance if found, None otherwise.
         """
         if self.con_mark:
-            found = self.tree.find_marked(self.con_mark)
+            found = self._find_marked_window()
         else:
             window_list = self._get_window_list()
             found = []
