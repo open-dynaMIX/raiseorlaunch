@@ -151,7 +151,7 @@ class Raiseorlaunch(object):
             leaves = self.tree.leaves()
             if self.scratch:
                 return [l for l in leaves if
-                        l.parent.scratchpad_state == 'changed']
+                        l.parent.scratchpad_state in ['changed', 'fresh']]
             else:
                 return leaves
         else:
@@ -161,6 +161,7 @@ class Raiseorlaunch(object):
             for workspace in workspaces:
                 if workspace.name == self.workspace:
                     return workspace.leaves()
+            return []
 
     def _find_marked_window(self):
         """
