@@ -19,6 +19,7 @@ Features
 - Optionally enable case-insensitive comparison
 - Optionally provide a workspace to use for raising and running
 - Optionally use the scratchpad for raising and running
+- Optionally provide a con_mark for raising and running
 - workspace\_auto\_back\_and\_forth (if enabled) remains functional
 
 Installation
