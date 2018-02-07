@@ -202,6 +202,92 @@ class Raiseorlaunch(object):
 
         return found[0] if found else None
 
+    def run_command(self):
+        """
+        Run the specified command with exec.
+        """
+        command = 'exec {}'.format(self.command)
+        logger.debug('Executing command: {}'.format(command))
+        self.i3.command(command)
+
+    def set_con_mark(self, window):
+        """
+        Set con_mark on window.
+
+        Args:
+            window: Instance of Con()
+        """
+        logger.debug('Setting con_mark "{}" on window: {}'
+                     .format(self.con_mark,
+                             self._log_format_con(window)))
+        window.command('mark {}'.format(self.con_mark))
+
+    def focus_window(self, window):
+        """
+        Focus window.
+
+        Args:
+            window: Instance of Con()
+        """
+        logger.debug('Focusing window: {}'.format(
+            self._log_format_con(window)))
+        window.command('focus')
+
+    def get_current_workspace(self):
+        """
+        Get the current workspace name.
+
+        Returns:
+            obj: The workspace Con()
+        """
+        return self.tree.find_focused().workspace()
+
+    def move_scratch(self, window):
+        """
+        Move window to scratchpad.
+
+        Args:
+            window: Instance of Con().
+
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        logger.debug('Enabling floating mode on newly created window: {}'
+                     .format(self._log_format_con(window)))
+        # Somehow this is needed to retain window geometry
+        # (e.g. when using xterm -geometry)
+        window.command('floating enable')
+        logger.debug('Moving newly created window to the scratchpad: {}'
+                     .format(self._log_format_con(window)))
+        window.command('move scratchpad')
+
+    def show_scratch(self, window):
+        """
+        Show scratchpad window.
+
+        Args:
+            window: Instance of Con().
+
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        logger.debug('Toggling visibility of scratch window: {}'.format(
+            self._log_format_con(window)))
+        window.command('scratchpad show')
+
+    def switch_to_workspace_by_name(self, name):
+        """
+        Focus another workspace.
+
+        Args:
+            name (str): workspace name
+
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        logger.debug('Switching to workspace: {}'.format(name))
+        self.i3.command('workspace {}'.format(name))
+
     def _handle_running(self, window, current_ws):
         """
         Handle app is running and not explicitly using scratchpad.
@@ -274,87 +360,6 @@ class Raiseorlaunch(object):
                 self.show_scratch(window)
             if self.con_mark:
                 self.set_con_mark(window)
-
-    def run_command(self):
-        """
-        Run the specified command with exec.
-        """
-        command = 'exec {}'.format(self.command)
-        logger.debug('Executing command: {}'.format(command))
-        self.i3.command(command)
-
-    def set_con_mark(self, window):
-        """
-        Set con_mark on window.
-
-        Args:
-            window: Instance of Con()
-        """
-        logger.debug('Setting con_mark "{}" on window: {}'
-                     .format(self.con_mark,
-                             self._log_format_con(window)))
-        window.command('mark {}'.format(self.con_mark))
-
-    def focus_window(self, window):
-        """
-        Focus window.
-
-        Args:
-            window: Instance of Con()
-        """
-        logger.debug('Focusing window: {}'.format(
-            self._log_format_con(window)))
-        window.command('focus')
-
-    def get_current_workspace(self):
-        """
-        Get the current workspace name.
-
-        Returns:
-            obj: The workspace Con
-        """
-        return self.tree.find_focused().workspace()
-
-    def move_scratch(self, window):
-        """
-        Move window to scratchpad.
-
-        Args:
-            window: Instance of Con().
-
-        Returns:
-            bool: True if successful, False otherwise.
-        """
-        logger.debug('Moving newly created window to the scratchpad: {}'
-                     .format(self._log_format_con(window)))
-        window.command('move scratchpad')
-
-    def show_scratch(self, window):
-        """
-        Show scratchpad window.
-
-        Args:
-            window: Instance of Con().
-
-        Returns:
-            bool: True if successful, False otherwise.
-        """
-        logger.debug('Toggling visibility of scratch window: {}'.format(
-            self._log_format_con(window)))
-        window.command('scratchpad show')
-
-    def switch_to_workspace_by_name(self, name):
-        """
-        Focus another workspace.
-
-        Args:
-            name (str): workspace name
-
-        Returns:
-            bool: True if successful, False otherwise.
-        """
-        logger.debug('Switching to workspace: {}'.format(name))
-        self.i3.command('workspace {}'.format(name))
 
     def run(self):
         """
