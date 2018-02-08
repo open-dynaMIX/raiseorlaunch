@@ -19,6 +19,7 @@ Features
 - Optionally enable case-insensitive comparison
 - Optionally provide a workspace to use for raising and running
 - Optionally use the scratchpad for raising and running
+- Optionally provide a con_mark for raising and running
 - workspace\_auto\_back\_and\_forth (if enabled) remains functional
 
 Installation
@@ -43,7 +44,8 @@ Manual
 Dependencies
 ~~~~~~~~~~~~
 
-- `i3-py <https://github.com/ziberna/i3-py>`__
+- python3
+- `i3ipc-python <https://github.com/acrisci/i3ipc-python>`__
 
 Install
 ~~~~~~~~~~~~
@@ -58,7 +60,7 @@ This can be prevented, if creating a wheel first and installing that (needs
 .. code:: shell
 
     python setup.py bdist_wheel
-    pip install ./dist/raiseorlaunch-${VERSION}-py2.py3-none-any.whl
+    pip install ./dist/raiseorlaunch-${VERSION}-py3-none-any.whl
 
 Run without installation
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -67,13 +69,13 @@ You can also just run raiseorlaunch without installing it:
 
 .. code:: shell
 
-    python -m raiseorlaunch ${OPTIONS}
+    python -m raiseorlaunch ${ARGUMENTS}
 
 or:
 
 .. code:: shell
 
-    ./raiseorlaunch/__main__.py ${OPTIONS}
+    ./raiseorlaunch/__main__.py ${ARGUMENTS}
 
 Usage and options
 -----------------
@@ -81,8 +83,8 @@ Usage and options
 ::
 
     usage: raiseorlaunch [-h] [-c WM_CLASS] [-s WM_INSTANCE] [-t WM_TITLE]
-                         [-e COMMAND] [--no-startup-id] [-w WORKSPACE] [-r] [-i]
-                         [-d] [-v]
+                         [-e COMMAND] [-w WORKSPACE] [-r] [-m CON_MARK]
+                         [-l EVENT_TIME_LIMIT] [-i] [-d] [-v]
 
     A run-or-raise-application-launcher for i3 window manager.
 
@@ -96,14 +98,16 @@ Usage and options
                             the window title regex
       -e COMMAND, --exec COMMAND
                             command to run with exec. If omitted, -c, -s or -t
-                            will be used (lower-case). The command will always be
-                            quoted, so make sure you properly escape internal
-                            quotation marks. See the README for examples. Careful:
-                            The command will not be checked prior to execution!
-      --no-startup-id       use --no-startup-id when running command with exec
+                            will be used (lower-case). Careful: The command will
+                            not be checked prior to execution!
       -w WORKSPACE, --workspace WORKSPACE
                             workspace to use
       -r, --scratch         use scratchpad
+      -m CON_MARK, --mark CON_MARK
+                            con_mark to use when raising and set when launching
+      -l EVENT_TIME_LIMIT, --event-time-limit EVENT_TIME_LIMIT
+                            Time limit in seconds to listen to window events when
+                            using the scratchpad. Defaults to 2.
       -i, --ignore-case     ignore case when comparing
       -d, --debug           display debug messages
       -v, --version         show program's version number and exit
@@ -132,6 +136,20 @@ Raise or launch SpeedCrunch and use the scratchpad:
 
     raiseorlaunch -r -c SpeedCrunch
 
+Use a script to start application:
+
+.. code:: shell
+
+    raiseorlaunch -r -c SpeedCrunch -e "--no-startup-id /path/to/my-cool-script.sh"
+
+Raise the window with the con_mark `wiki`. If not found, execute command and
+mark the new window matching the provided properties. Set the time limit to
+wait for a new window to 3 seconds:
+
+.. code:: shell
+
+    raiseorlaunch -c Firefox -s Navigator -e "firefox --new-window https://wiki.archlinux.org/" -m wiki -l 3
+
 i3 bindsym
 **********
 
@@ -139,7 +157,7 @@ In i3 config you can define a bindsym like that:
 
 .. code::
 
-    bindsym ${KEYS} exec --no-startup-id raiseorlaunch ${OPTIONS}
+    bindsym ${KEYS} exec --no-startup-id raiseorlaunch ${ARGUMENTS}
 
 e.g.
 
@@ -149,38 +167,9 @@ e.g.
 
 for binding `$mod+s` to raise or launch sublime text.
 
-Escaping quotation marks
-------------------------
-
-If using a single-word command like `qutebrowser`, no quotation marks are
-necessary. But for more complicated commands you will need them.
-
-If the command itself also contains quotes, they need to get escaped properly.
-
-Here are some exmaples:
-
-On the CLI
-**********
-::
-
-    raiseorlaunch -w 1 -c some_class -e "notify-send \\\"Hello, i3; from $USER\\\"; notify-send \\\"another message;\\\"" --no-startup-id
-                                        ^ using double-quotes                 ^ three backslashes
-    raiseorlaunch -w 1 -c some_class -e 'notify-send \"Hello, i3; from $USER\"; notify-send \"another message;\"' --no-startup-id
-                                        ^ using single-quotes               ^ one backslash
-
-Using bindsym
-*************
-When using raiseorlaunch with `exec`, things will get even a little more crazy.
-
-In this examples we need to use `--no-startup-id` for execing raiseorlaunch. We
-also need the same flag for raiseorlaunch, because the command run with it also
-doesn't support startup-notifications.
-
-::
-
-    bindsym $mod+c exec --no-startup-id "raiseorlaunch -w 1 -c some_class -e 'notify-send \\\\"Hello, i3; from $USER\\\\"; notify-send \\\\"another message;\\\\"' --no-startup-id"
-                                                                             ^ use single-quotes for -e             ^ four backslashes
-
+Quotation marks
+---------------
+The command will not be quoted when calling `exec`. Make sure you properly escape any needed quotation marks. For simple commands there is no need to do anything.
 
 Known problems
 --------------

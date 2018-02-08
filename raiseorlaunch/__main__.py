@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
@@ -6,13 +6,11 @@ This is the CLI for raiseorlaunch. A run-or-raise-application-launcher
 for i3 window manager.
 """
 
-from __future__ import unicode_literals
-import sys
 import os
 import argparse
 from distutils import spawn
 import logging
-from raiseorlaunch import (Raiseorlaunch, RaiseorlaunchWorkspace,
+from raiseorlaunch import (Raiseorlaunch, RaiseorlaunchError,
                            __title__, __version__, __description__)
 
 
@@ -23,19 +21,19 @@ def verify_app(parser, application):
     """
     Verify the executable if not provided with -e.
     """
-    def error_handle():
+    def raise_exception():
         """
-        Handle a verify_app error.
+        Raise a parser error.
         """
         parser.error('{} is not an executable! Did you forget to supply -e?'
                      .format(application))
 
     is_exe = spawn.find_executable(application)
     if not is_exe:
-        error_handle()
+        raise_exception()
     elif is_exe == application:
         if not os.access(application, os.X_OK):
-            error_handle()
+            raise_exception()
     return application
 
 
@@ -59,22 +57,20 @@ def set_command(parser, args):
     return args
 
 
-def check_args(parser, args):
-    """
-    Verify that at least one argument is given.
-    """
-    if args.scratch and args.workspace:
-        parser.error('You cannot use the scratchpad on a specific workspace.')
-
-
-def commandline_string_arg(string):
-    """
-    Python2 compatibility.
-    """
-    if sys.version_info[0] == 2:
-        return string.decode('utf-8')
-    else:
-        return string
+def check_positive(value):
+    def raise_exception():
+        """
+        Raise an ArgumentTypeError.
+        """
+        raise argparse.ArgumentTypeError('{} is not a positive integer or '
+                                         'float'.format(value))
+    try:
+        fvalue = float(value)
+    except ValueError:
+        raise_exception()
+    if fvalue <= 0:
+        raise_exception()
+    return fvalue
 
 
 def parse_arguments():
@@ -87,42 +83,35 @@ def parse_arguments():
                                      RawDescriptionHelpFormatter)
 
     parser.add_argument('-c', '--class', dest='wm_class',
-                        type=commandline_string_arg,
                         help='the window class regex')
-    parser.set_defaults(wm_class='')
 
     parser.add_argument('-s', '--instance', dest='wm_instance',
-                        type=commandline_string_arg,
                         help='the window instance regex')
-    parser.set_defaults(wm_instance='')
 
     parser.add_argument('-t', '--title', dest='wm_title',
-                        type=commandline_string_arg,
                         help='the window title regex')
-    parser.set_defaults(wm_title='')
 
     parser.add_argument('-e', '--exec', dest='command',
-                        type=commandline_string_arg,
                         help='command to run with exec. If omitted, -c, -s or '
-                        '-t will be used (lower-case). The command will '
-                        'always be quoted, so make sure you properly escape '
-                        'internal quotation marks. See the README for '
-                        'examples. Careful: The command will not be checked '
+                        '-t will be used (lower-case). '
+                        'Careful: The command will not be checked '
                         'prior to execution!')
     parser.set_defaults(command=None)
 
-    parser.add_argument('--no-startup-id', dest='no_startup_id',
-                        action='store_true',
-                        help='use --no-startup-id when running command with '
-                        'exec')
-
     parser.add_argument('-w', '--workspace', dest='workspace',
-                        type=commandline_string_arg,
                         help='workspace to use')
-    parser.set_defaults(workspace=None)
 
     parser.add_argument('-r', '--scratch', dest='scratch',
                         action='store_true', help='use scratchpad')
+
+    parser.add_argument('-m', '--mark', dest='con_mark',
+                        help='con_mark to use when raising and set when '
+                        'launching')
+
+    parser.add_argument('-l', '--event-time-limit', dest='event_time_limit',
+                        type=check_positive, help='Time limit in seconds to '
+                        'listen to window events when using the scratchpad. '
+                        'Defaults to 2.')
 
     parser.add_argument('-i', '--ignore-case', dest='ignore_case',
                         action='store_true', help='ignore case when comparing')
@@ -139,8 +128,6 @@ def parse_arguments():
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    check_args(parser, args)
-
     args = set_command(parser, args)
 
     return args, parser
@@ -155,29 +142,17 @@ def main():
     logger.debug('Provided arguments: {}'.format(args))
 
     try:
-        if not args.workspace:
-            rol = Raiseorlaunch(command=args.command,
-                                wm_class=args.wm_class,
-                                wm_instance=args.wm_instance,
-                                wm_title=args.wm_title,
-                                ignore_case=args.ignore_case,
-                                no_startup_id=args.no_startup_id,
-                                scratch=args.scratch)
-        else:
-            rol = RaiseorlaunchWorkspace(command=args.command,
-                                         wm_class=args.wm_class,
-                                         wm_instance=args.wm_instance,
-                                         wm_title=args.wm_title,
-                                         ignore_case=args.ignore_case,
-                                         no_startup_id=args.no_startup_id,
-                                         workspace=args.workspace)
-    except TypeError as e:
-        if str(e) == ('You need to specify '
-                      '"wm_class", "wm_instance" or "wm_title".'):
-            parser.error('You need to specify at least one argument out '
-                         'of -c, -s or -t.')
-        else:
-            raise
+        rol = Raiseorlaunch(command=args.command,
+                            wm_class=args.wm_class,
+                            wm_instance=args.wm_instance,
+                            wm_title=args.wm_title,
+                            scratch=args.scratch,
+                            con_mark=args.con_mark,
+                            workspace=args.workspace,
+                            ignore_case=args.ignore_case,
+                            event_time_limit=args.event_time_limit)
+    except RaiseorlaunchError as e:
+        parser.error(str(e))
 
     rol.run()
 
