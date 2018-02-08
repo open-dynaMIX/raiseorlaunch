@@ -49,7 +49,6 @@ class Raiseorlaunch(object):
                                                    listen to window events
                                                    when using the scratchpad.
     """
-
     def __init__(self,
                  command,
                  wm_class=None,

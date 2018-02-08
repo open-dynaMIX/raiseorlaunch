@@ -69,13 +69,13 @@ You can also just run raiseorlaunch without installing it:
 
 .. code:: shell
 
-    python -m raiseorlaunch ${OPTIONS}
+    python -m raiseorlaunch ${ARGUMENTS}
 
 or:
 
 .. code:: shell
 
-    ./raiseorlaunch/__main__.py ${OPTIONS}
+    ./raiseorlaunch/__main__.py ${ARGUMENTS}
 
 Usage and options
 -----------------
@@ -157,7 +157,7 @@ In i3 config you can define a bindsym like that:
 
 .. code::
 
-    bindsym ${KEYS} exec --no-startup-id raiseorlaunch ${OPTIONS}
+    bindsym ${KEYS} exec --no-startup-id raiseorlaunch ${ARGUMENTS}
 
 e.g.
 
