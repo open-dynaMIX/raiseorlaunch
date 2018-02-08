@@ -10,7 +10,7 @@ license=('MIT')
 depends=('python' 'i3ipc-python-git')
 makedepends=('python-setuptools' 'python-pip' 'python-wheel')
 source=("https://github.com/open-dynaMIX/${pkgname}/archive/v${pkgver}.tar.gz")
-sha256sums=('e160fb5435b6b183db42618b93952841c56112d11b8fd853fb94c91878575172')
+sha256sums=('8d82b8bbc432fa790d0cd69dfd842aa6a3f54fd28dfa334f6a62008a982bbd81')
 
 build() {
         cd "${srcdir}/${pkgname}-${pkgver}"
