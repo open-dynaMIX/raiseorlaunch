@@ -140,7 +140,7 @@ Use a script to start application:
 
 .. code:: shell
 
-    raiseorlaunch -r -c SpeedCrunch -e "--no-startup-id my-cool-script.sh"
+    raiseorlaunch -r -c SpeedCrunch -e "--no-startup-id /path/to/my-cool-script.sh"
 
 Raise the window with the con_mark `wiki`. If not found, execute command and
 mark the new window matching the provided properties. Set the time limit to
