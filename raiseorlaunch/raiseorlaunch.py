@@ -364,8 +364,12 @@ class Raiseorlaunch(object):
             else:
                 target_ws = self.current_ws.name
 
-            if not window.workspace().name == target_ws:
-                self.move_con_to_workspace_by_name(window, target_ws)
+            # This is necessary, because window.workspace() returns None
+            w = connection.get_tree().find_by_id(window.id)
+
+            if not w.workspace().name == target_ws:
+                self.move_con_to_workspace_by_name(w, target_ws)
+
 
     def run(self):
         """
