@@ -17,6 +17,7 @@ import sys
 from datetime import datetime, timedelta
 import re
 import logging
+from utils import check_positive
 try:
     import i3ipc
 except ImportError:
@@ -67,7 +68,7 @@ class Raiseorlaunch(object):
         self.scratch = scratch
         self.con_mark = con_mark
         self.ignore_case = ignore_case
-        self.event_time_limit = event_time_limit if event_time_limit else 2
+        self.event_time_limit = event_time_limit
 
         self.regex_flags = []
         if self.ignore_case:
@@ -92,6 +93,9 @@ class Raiseorlaunch(object):
         if self.workspace and self.scratch:
             raise RaiseorlaunchError('You cannot use the scratchpad on a '
                                      'specific workspace.')
+        if not check_positive(self.event_time_limit):
+            raise RaiseorlaunchError('The event time limit must be a positive '
+                                     'integer or float!')
 
     def _log_format_con(self, window):
         """

@@ -10,6 +10,7 @@ import os
 import argparse
 from distutils import spawn
 import logging
+from utils import check_positive
 from raiseorlaunch import (Raiseorlaunch, RaiseorlaunchError,
                            __title__, __version__, __description__)
 
@@ -57,21 +58,12 @@ def set_command(parser, args):
     return args
 
 
-def check_positive(value):
-    def raise_exception():
-        """
-        Raise an ArgumentTypeError.
-        """
-        raise argparse.ArgumentTypeError('{} is not a positive integer or '
-                                         'float'.format(value))
-    try:
-        fvalue = float(value)
-    except ValueError:
-        raise_exception()
+def check_time_limit(value):
+    if not check_positive(value):
+        raise argparse.ArgumentTypeError('event-time-limit is not a positive '
+                                         'integer or float!')
     else:
-        if fvalue <= 0:
-            raise_exception()
-        return fvalue
+        return value
 
 
 def parse_arguments():
@@ -110,9 +102,9 @@ def parse_arguments():
                         'launching')
 
     parser.add_argument('-l', '--event-time-limit', dest='event_time_limit',
-                        type=check_positive, help='Time limit in seconds to '
+                        type=check_time_limit, help='Time limit in seconds to '
                         'listen to window events when using the scratchpad. '
-                        'Defaults to 2.')
+                        'Defaults to 2.', default=2)
 
     parser.add_argument('-i', '--ignore-case', dest='ignore_case',
                         action='store_true', help='ignore case when comparing')
