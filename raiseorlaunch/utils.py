@@ -9,4 +9,4 @@ def check_positive(value):
     else:
         if fvalue <= 0:
             return False
-        return True
+        return fvalue

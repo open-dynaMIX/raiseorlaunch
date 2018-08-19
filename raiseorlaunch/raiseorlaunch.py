@@ -17,7 +17,7 @@ import sys
 from datetime import datetime, timedelta
 import re
 import logging
-from utils import check_positive
+from .utils import check_positive
 try:
     import i3ipc
 except ImportError:
@@ -370,7 +370,7 @@ class Raiseorlaunch(object):
         if running:
             current_ws = self.get_current_workspace()
             logger.debug('Application is running on workspace "{}": {}'
-                         .format(current_ws.name,
+                         .format(running.workspace().name,
                                  self._log_format_con(running)))
             if self.scratch:
                 self._handle_running_scratch(running, current_ws)

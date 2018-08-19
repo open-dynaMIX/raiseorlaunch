@@ -71,11 +71,6 @@ You can also just run raiseorlaunch without installing it:
 
     python -m raiseorlaunch ${ARGUMENTS}
 
-or:
-
-.. code:: shell
-
-    ./raiseorlaunch/__main__.py ${ARGUMENTS}
 
 Usage and options
 -----------------

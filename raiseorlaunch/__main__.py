@@ -10,9 +10,9 @@ import os
 import argparse
 from distutils import spawn
 import logging
-from utils import check_positive
-from raiseorlaunch import (Raiseorlaunch, RaiseorlaunchError,
-                           __title__, __version__, __description__)
+from .utils import check_positive
+from .raiseorlaunch import (Raiseorlaunch, RaiseorlaunchError,
+                            __title__, __version__, __description__)
 
 
 logger = logging.getLogger(__name__)
@@ -59,11 +59,12 @@ def set_command(parser, args):
 
 
 def check_time_limit(value):
-    if not check_positive(value):
+    new_value = check_positive(value)
+    if not new_value:
         raise argparse.ArgumentTypeError('event-time-limit is not a positive '
                                          'integer or float!')
     else:
-        return value
+        return new_value
 
 
 def parse_arguments():
