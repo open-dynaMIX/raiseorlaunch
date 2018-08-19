@@ -346,8 +346,8 @@ class Raiseorlaunch(object):
         """
         Callback function for window::new events.
 
-        This handles moving new windows to the scratchpad
-        and setting con_marks.
+        This handles moving new windows to the desired workspace or
+        the scratchpad and setting con_marks.
         """
         window = event.container
         logger.debug('Event callback: {}'
