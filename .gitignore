@@ -16,3 +16,5 @@ pyenv.bak/
 test.py
 pyenv/
 pyenv27/
+
+.idea/

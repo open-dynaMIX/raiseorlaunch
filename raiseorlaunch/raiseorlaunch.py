@@ -180,9 +180,6 @@ class Raiseorlaunch(object):
         """
         Compare windows in list with provided properties.
 
-        Args:
-            window_list: Instances of Con().
-
         Returns:
             Con() instance if found, None otherwise.
         """

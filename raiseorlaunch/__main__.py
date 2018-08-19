@@ -68,9 +68,10 @@ def check_positive(value):
         fvalue = float(value)
     except ValueError:
         raise_exception()
-    if fvalue <= 0:
-        raise_exception()
-    return fvalue
+    else:
+        if fvalue <= 0:
+            raise_exception()
+        return fvalue
 
 
 def parse_arguments():
@@ -153,8 +154,8 @@ def main():
                             event_time_limit=args.event_time_limit)
     except RaiseorlaunchError as e:
         parser.error(str(e))
-
-    rol.run()
+    else:
+        rol.run()
 
 
 if __name__ == '__main__':
