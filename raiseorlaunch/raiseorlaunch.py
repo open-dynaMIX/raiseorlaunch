@@ -14,7 +14,6 @@ __author__ = 'Fabio Rämi'
 
 
 import sys
-from datetime import datetime, timedelta
 import re
 import logging
 from .utils import check_positive
@@ -78,8 +77,6 @@ class Raiseorlaunch(object):
 
         self.i3 = i3ipc.Connection()
         self.tree = self.i3.get_tree()
-
-        self._timestamp = None
 
     def _check_args(self):
         """
@@ -329,8 +326,7 @@ class Raiseorlaunch(object):
         if self.scratch or self.con_mark:
             self.i3.on("window::new", self._callback_new_window)
             self.run_command()
-            self._timestamp = datetime.now()
-            self.i3.main()
+            self.i3.main(timeout=self.event_time_limit)
         else:
             if self.workspace:
                 current_ws = self.get_current_workspace()
@@ -348,11 +344,6 @@ class Raiseorlaunch(object):
         window = event.container
         logger.debug('Event callback: {}'
                      .format(self._log_format_con(window)))
-
-        timediff = datetime.now() - self._timestamp
-        if timediff > timedelta(seconds=self.event_time_limit):
-            logger.debug('Time limit exceeded. Exiting.')
-            exit(0)
 
         if self._compare_running(window):
             if self.scratch:
