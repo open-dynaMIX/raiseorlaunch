@@ -77,6 +77,7 @@ class Raiseorlaunch(object):
 
         self.i3 = i3ipc.Connection()
         self.tree = self.i3.get_tree()
+        self.current_ws = self.get_current_workspace()
 
     def _check_args(self):
         """
@@ -94,7 +95,8 @@ class Raiseorlaunch(object):
             raise RaiseorlaunchError('The event time limit must be a positive '
                                      'integer or float!')
 
-    def _log_format_con(self, window):
+    @staticmethod
+    def _log_format_con(window):
         """
         Create an informatinal string for logging leaves.
 
@@ -245,9 +247,6 @@ class Raiseorlaunch(object):
 
         Args:
             window: Instance of Con().
-
-        Returns:
-            bool: True if successful, False otherwise.
         """
         logger.debug('Enabling floating mode on newly created window: {}'
                      .format(self._log_format_con(window)))
@@ -264,9 +263,6 @@ class Raiseorlaunch(object):
 
         Args:
             window: Instance of Con().
-
-        Returns:
-            bool: True if successful, False otherwise.
         """
         logger.debug('Toggling visibility of scratch window: {}'.format(
             self._log_format_con(window)))
@@ -278,41 +274,47 @@ class Raiseorlaunch(object):
 
         Args:
             name (str): workspace name
-
-        Returns:
-            bool: True if successful, False otherwise.
         """
         logger.debug('Switching to workspace: {}'.format(name))
         self.i3.command('workspace {}'.format(name))
 
-    def _handle_running(self, window, current_ws):
+    def move_con_to_workspace_by_name(self, window, workspace):
+        """
+        Move window to workspace.
+
+        Args:
+            window: Instance of Con().
+            workspace: str
+        """
+        logger.debug('Moving window to workspace: {}'.format(workspace))
+        window.command('move container to workspace {}'.format(workspace))
+
+    def _handle_running(self, window):
         """
         Handle app is running and not explicitly using scratchpad.
 
         Args:
             window: Instance of Con().
-            current_ws: Instance of Con().
         """
         if not window.focused:
             self.focus_window(window)
         else:
-            if current_ws.name == self.get_current_workspace().name:
+            if self.current_ws.name == self.get_current_workspace().name:
                 logger.debug('We\'re on the right workspace. '
                              'Switching anyway to retain '
                              'workspace_back_and_forth '
                              'functionality.')
-                self.switch_to_workspace_by_name(current_ws.name)
+                self.switch_to_workspace_by_name(self.current_ws.name)
 
-    def _handle_running_scratch(self, window, current_ws):
+    def _handle_running_scratch(self, window):
         """
         Handle app is running and explicitly using scratchpad.
 
         Args:
             window: Instance of Con().
-            current_ws: Instance of Con().
         """
         if not window.focused:
-            if current_ws.name == window.workspace().name:
+            if self.current_ws.name == window.workspace().name:
                 self.focus_window(window)
             else:
                 self.show_scratch(window)
@@ -323,16 +325,12 @@ class Raiseorlaunch(object):
         """
         Handle app is not running.
         """
-        if self.scratch or self.con_mark:
-            self.i3.on("window::new", self._callback_new_window)
-            self.run_command()
-            self.i3.main(timeout=self.event_time_limit)
-        else:
-            if self.workspace:
-                current_ws = self.get_current_workspace()
-                if not current_ws.name == self.workspace:
-                    self.switch_to_workspace_by_name(self.workspace)
-            self.run_command()
+        if self.workspace:
+            if not self.current_ws.name == self.workspace:
+                self.switch_to_workspace_by_name(self.workspace)
+        self.i3.on("window::new", self._callback_new_window)
+        self.run_command()
+        self.i3.main(timeout=self.event_time_limit)
 
     def _callback_new_window(self, connection, event):
         """
@@ -351,6 +349,13 @@ class Raiseorlaunch(object):
                 self.show_scratch(window)
             if self.con_mark:
                 self.set_con_mark(window)
+            if self.workspace:
+                target_ws = self.workspace
+            else:
+                target_ws = self.current_ws.name
+
+            if not window.workspace().name == target_ws:
+                self.move_con_to_workspace_by_name(window, target_ws)
 
     def run(self):
         """
@@ -359,14 +364,13 @@ class Raiseorlaunch(object):
         """
         running = self._is_running()
         if running:
-            current_ws = self.get_current_workspace()
             logger.debug('Application is running on workspace "{}": {}'
                          .format(running.workspace().name,
                                  self._log_format_con(running)))
             if self.scratch:
-                self._handle_running_scratch(running, current_ws)
+                self._handle_running_scratch(running)
             else:
-                self._handle_running(running, current_ws)
+                self._handle_running(running)
         else:
             logger.debug('Application is not running.')
             self._handle_not_running()
