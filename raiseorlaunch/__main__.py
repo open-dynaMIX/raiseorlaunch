@@ -10,9 +10,9 @@ import os
 import argparse
 from distutils import spawn
 import logging
-from .utils import check_positive
-from .raiseorlaunch import (Raiseorlaunch, RaiseorlaunchError,
-                            __title__, __version__, __description__)
+from raiseorlaunch import (Raiseorlaunch, RaiseorlaunchError,
+                           __title__, __version__,
+                           __description__, check_positive)
 
 
 logger = logging.getLogger(__name__)

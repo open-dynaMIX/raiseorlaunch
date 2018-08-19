@@ -21,6 +21,10 @@ Features
 - Optionally use the scratchpad for raising and running
 - Optionally provide a con_mark for raising and running
 - workspace\_auto\_back\_and\_forth (if enabled) remains functional
+- Created windows will always be moved to the expected workspace.
+  This fixes the behaviour of applications that don't implement
+  startup-notifications. By default this works for windows created within
+  2 seconds. The timeout is configurable with `-l/--event-time-limit`
 
 Installation
 ------------
@@ -71,6 +75,11 @@ You can also just run raiseorlaunch without installing it:
 
     python -m raiseorlaunch ${ARGUMENTS}
 
+or:
+
+.. code:: shell
+
+    ./raiseorlaunch/__main__.py ${ARGUMENTS}
 
 Usage and options
 -----------------
