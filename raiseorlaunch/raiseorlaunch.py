@@ -16,7 +16,6 @@ __author__ = 'Fabio Rämi'
 import sys
 import re
 import logging
-from .utils import check_positive
 try:
     import i3ipc
 except ImportError:
@@ -25,6 +24,17 @@ except ImportError:
 
 
 logger = logging.getLogger(__name__)
+
+
+def check_positive(value):
+    try:
+        fvalue = float(value)
+    except ValueError:
+        return False
+    else:
+        if fvalue <= 0:
+            return False
+        return fvalue
 
 
 class RaiseorlaunchError(Exception):
