@@ -21,6 +21,9 @@ Features
 - Optionally use the scratchpad for raising and running
 - Optionally provide a con_mark for raising and running
 - workspace\_auto\_back\_and\_forth (if enabled) remains functional
+- Optionally cycle through matching windows (this will break
+  workspace\_auto\_back\_and\_forth if more than one window matches the given
+  properties)
 - Created windows will always be moved to the expected workspace.
   This fixes the behaviour of applications that don't implement
   startup-notifications. By default this works for windows created within
@@ -88,7 +91,7 @@ Usage and options
 
     usage: raiseorlaunch [-h] [-c WM_CLASS] [-s WM_INSTANCE] [-t WM_TITLE]
                          [-e COMMAND] [-w WORKSPACE] [-r] [-m CON_MARK]
-                         [-l EVENT_TIME_LIMIT] [-i] [-d] [-v]
+                         [-l EVENT_TIME_LIMIT] [-i] [-C] [-d] [-v]
 
     A run-or-raise-application-launcher for i3 window manager.
 
@@ -113,6 +116,9 @@ Usage and options
                             Time limit in seconds to listen to window events when
                             using the scratchpad. Defaults to 2.
       -i, --ignore-case     ignore case when comparing
+      -C, --cycle           cycle through matching windows (this will break
+                            workspace_back_and_forth if more than one window
+                            matches the given properties)
       -d, --debug           display debug messages
       -v, --version         show program's version number and exit
 

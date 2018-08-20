@@ -59,6 +59,15 @@ def set_command(parser, args):
 
 
 def check_time_limit(value):
+    """
+    Validate value for --event-time-limit
+
+    Args:
+        value: provided value
+
+    Returns:
+        float if valid otherwise raises Exception
+    """
     new_value = check_positive(value)
     if not new_value:
         raise argparse.ArgumentTypeError('event-time-limit is not a positive '
@@ -110,6 +119,11 @@ def parse_arguments():
     parser.add_argument('-i', '--ignore-case', dest='ignore_case',
                         action='store_true', help='ignore case when comparing')
 
+    parser.add_argument('-C', '--cycle', dest='cycle',
+                        action='store_true', help='cycle through matching '
+                        'windows (this will break workspace_back_and_forth if '
+                        'more than one window matches the given properties)')
+
     parser.add_argument('-d', '--debug', dest='debug',
                         help='display debug messages',
                         action='store_true')
@@ -144,7 +158,8 @@ def main():
                             con_mark=args.con_mark,
                             workspace=args.workspace,
                             ignore_case=args.ignore_case,
-                            event_time_limit=args.event_time_limit)
+                            event_time_limit=args.event_time_limit,
+                            cycle=args.cycle)
     except RaiseorlaunchError as e:
         parser.error(str(e))
     else:

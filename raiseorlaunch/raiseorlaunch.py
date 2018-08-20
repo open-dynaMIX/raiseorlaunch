@@ -51,13 +51,14 @@ class Raiseorlaunch(object):
         wm_instance (str, optional): Regex for the the window instance.
         wm_title (str, optional): Regex for the the window title.
         workspace (str): The workspace that should be used for the application.
-        scratch (bool, optional): Indicate if the scratchpad should be used.
+        scratch (bool, optional): Use the scratchpad.
         ignore_case (bool, optional): Ignore case when comparing
                                       window-properties with provided
                                       arguments.
         event_time_limit (int or float, optional): Time limit in seconds to
                                                    listen to window events
                                                    when using the scratchpad.
+        cycle (bool, optional): Cycle through matching windows.
     """
     def __init__(self,
                  command,
@@ -68,7 +69,8 @@ class Raiseorlaunch(object):
                  scratch=False,
                  con_mark=None,
                  ignore_case=False,
-                 event_time_limit=2):
+                 event_time_limit=2,
+                 cycle=False):
         self.command = command
         self.wm_class = wm_class
         self.wm_instance = wm_instance
@@ -78,6 +80,7 @@ class Raiseorlaunch(object):
         self.con_mark = con_mark
         self.ignore_case = ignore_case
         self.event_time_limit = event_time_limit
+        self.cycle = cycle
 
         self.regex_flags = []
         if self.ignore_case:
@@ -194,7 +197,7 @@ class Raiseorlaunch(object):
         Compare windows in list with provided properties.
 
         Returns:
-            Con() instance if found, None otherwise.
+            List of Con() instances if found, None otherwise.
         """
         if self.con_mark:
             found = self._find_marked_window()
@@ -206,10 +209,9 @@ class Raiseorlaunch(object):
                     found.append(leave)
 
             if len(found) > 1:
-                logger.warning('Found multiple windows that match the '
-                               'properties. Using one at random.')
+                logger.debug('Multiple windows match the properties.')
 
-        return found[0] if found else None
+        return found if found else None
 
     def run_command(self):
         """
@@ -288,7 +290,8 @@ class Raiseorlaunch(object):
         logger.debug('Switching to workspace: {}'.format(name))
         self.i3.command('workspace {}'.format(name))
 
-    def move_con_to_workspace_by_name(self, window, workspace):
+    @staticmethod
+    def move_con_to_workspace_by_name(window, workspace):
         """
         Move window to workspace.
 
@@ -299,7 +302,31 @@ class Raiseorlaunch(object):
         logger.debug('Moving window to workspace: {}'.format(workspace))
         window.command('move container to workspace {}'.format(workspace))
 
-    def _handle_running(self, window):
+    def _handle_running(self, running):
+        """
+        Handle app is running one or multiple times.
+
+        Args:
+            running: List of Con() instances.
+        """
+        if self.cycle and len(running) > 1:
+            for w in running:
+                if w.focused:
+                    self._handle_running_cycle(running)
+                    return
+
+        if len(running) > 1:
+            logger.warning('Found multiple windows that match the '
+                           'properties. Using the first in the tree.')
+        logger.debug('Application is running on workspace "{}": {}'
+                     .format(running[0].workspace().name,
+                             self._log_format_con(running[0])))
+        if self.scratch:
+            self._handle_running_scratch(running[0])
+        else:
+            self._handle_running_no_scratch(running[0])
+
+    def _handle_running_no_scratch(self, window):
         """
         Handle app is running and not explicitly using scratchpad.
 
@@ -330,6 +357,32 @@ class Raiseorlaunch(object):
                 self.show_scratch(window)
         else:
             self.show_scratch(window)
+
+    def _handle_running_cycle(self, windows):
+        """
+        Handle cycling through running apps.
+
+        Args:
+            windows: List with instances of Con().
+        """
+        switch = False
+        w = None
+        windows.append(windows[0])
+        for window in windows:
+            if switch:
+                w = window
+                break
+            if window.focused:
+                switch = True
+
+        if w:
+            logger.debug('Application is running on workspace "{}": {}'
+                         .format(w.workspace().name,
+                                 self._log_format_con(w)))
+            self.focus_window(w)
+        else:
+            logger.error('No running windows received. '
+                         'This should not happen!')
 
     def _handle_not_running(self):
         """
@@ -370,7 +423,6 @@ class Raiseorlaunch(object):
             if not w.workspace().name == target_ws:
                 self.move_con_to_workspace_by_name(w, target_ws)
 
-
     def run(self):
         """
         Search for running window that matches provided properties
@@ -378,13 +430,7 @@ class Raiseorlaunch(object):
         """
         running = self._is_running()
         if running:
-            logger.debug('Application is running on workspace "{}": {}'
-                         .format(running.workspace().name,
-                                 self._log_format_con(running)))
-            if self.scratch:
-                self._handle_running_scratch(running)
-            else:
-                self._handle_running(running)
+            self._handle_running(running)
         else:
             logger.debug('Application is not running.')
             self._handle_not_running()
