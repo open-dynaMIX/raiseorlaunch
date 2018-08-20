@@ -51,13 +51,14 @@ class Raiseorlaunch(object):
         wm_instance (str, optional): Regex for the the window instance.
         wm_title (str, optional): Regex for the the window title.
         workspace (str): The workspace that should be used for the application.
-        scratch (bool, optional): Indicate if the scratchpad should be used.
+        scratch (bool, optional): Use the scratchpad.
         ignore_case (bool, optional): Ignore case when comparing
                                       window-properties with provided
                                       arguments.
         event_time_limit (int or float, optional): Time limit in seconds to
                                                    listen to window events
                                                    when using the scratchpad.
+        cycle (bool, optional): Cycle through matching windows.
     """
     def __init__(self,
                  command,

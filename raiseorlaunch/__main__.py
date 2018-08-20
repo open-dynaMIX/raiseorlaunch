@@ -59,6 +59,15 @@ def set_command(parser, args):
 
 
 def check_time_limit(value):
+    """
+    Validate value for --event-time-limit
+
+    Args:
+        value: provided value
+
+    Returns:
+        float if valid otherwise raises Exception
+    """
     new_value = check_positive(value)
     if not new_value:
         raise argparse.ArgumentTypeError('event-time-limit is not a positive '
