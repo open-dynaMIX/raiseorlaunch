@@ -304,7 +304,7 @@ class Raiseorlaunch(object):
     def _handle_running(self, running):
         """
         Handle app is running one or multiple times.
-        
+
         Args:
             running: List of Con() instances.
         """

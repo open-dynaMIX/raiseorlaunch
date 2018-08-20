@@ -112,7 +112,8 @@ def parse_arguments():
 
     parser.add_argument('-C', '--cycle', dest='cycle',
                         action='store_true', help='cycle through matching '
-                        'windows (this will break workspace_back_and_forth)')
+                        'windows (this will break workspace_back_and_forth if '
+                        'more than one window matches the given properties)')
 
     parser.add_argument('-d', '--debug', dest='debug',
                         help='display debug messages',
