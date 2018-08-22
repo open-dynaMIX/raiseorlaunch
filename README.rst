@@ -18,6 +18,7 @@ Features
   running windows
 - Optionally enable case-insensitive comparison
 - Optionally provide a workspace to use for raising and running
+- Optionally provide an initial workspace to run the application
 - Optionally use the scratchpad for raising and running
 - Optionally provide a con_mark for raising and running
 - workspace\_auto\_back\_and\_forth (if enabled) remains functional
@@ -90,8 +91,8 @@ Usage and options
 ::
 
     usage: raiseorlaunch [-h] [-c WM_CLASS] [-s WM_INSTANCE] [-t WM_TITLE]
-                         [-e COMMAND] [-w WORKSPACE] [-r] [-m CON_MARK]
-                         [-l EVENT_TIME_LIMIT] [-i] [-C] [-d] [-v]
+                         [-e COMMAND] [-w WORKSPACE] [-W INIT_WORKSPACE] [-r]
+                         [-m CON_MARK] [-l EVENT_TIME_LIMIT] [-i] [-C] [-d] [-v]
 
     A run-or-raise-application-launcher for i3 window manager.
 
@@ -109,6 +110,8 @@ Usage and options
                             not be checked prior to execution!
       -w WORKSPACE, --workspace WORKSPACE
                             workspace to use
+      -W INIT_WORKSPACE, --init-workspace INIT_WORKSPACE
+                            initial workspace
       -r, --scratch         use scratchpad
       -m CON_MARK, --mark CON_MARK
                             con_mark to use when raising and set when launching

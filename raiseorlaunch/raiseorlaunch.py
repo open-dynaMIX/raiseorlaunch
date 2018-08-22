@@ -51,6 +51,8 @@ class Raiseorlaunch(object):
         wm_instance (str, optional): Regex for the the window instance.
         wm_title (str, optional): Regex for the the window title.
         workspace (str): The workspace that should be used for the application.
+        init_workspace (str): The initial workspace that should be used for
+                              the application.
         scratch (bool, optional): Use the scratchpad.
         ignore_case (bool, optional): Ignore case when comparing
                                       window-properties with provided
@@ -66,6 +68,7 @@ class Raiseorlaunch(object):
                  wm_instance=None,
                  wm_title=None,
                  workspace=None,
+                 init_workspace=None,
                  scratch=False,
                  con_mark=None,
                  ignore_case=False,
@@ -76,6 +79,7 @@ class Raiseorlaunch(object):
         self.wm_instance = wm_instance
         self.wm_title = wm_title
         self.workspace = workspace
+        self.init_workspace = init_workspace if init_workspace else workspace
         self.scratch = scratch
         self.con_mark = con_mark
         self.ignore_case = ignore_case
@@ -101,12 +105,16 @@ class Raiseorlaunch(object):
         if not self.wm_class and not self.wm_instance and not self.wm_title:
             raise RaiseorlaunchError('You need to specify '
                                      '"wm_class", "wm_instance" or "wm_title.')
-        if self.workspace and self.scratch:
+        if (self.workspace or self.init_workspace) and self.scratch:
             raise RaiseorlaunchError('You cannot use the scratchpad on a '
                                      'specific workspace.')
         if not check_positive(self.event_time_limit):
             raise RaiseorlaunchError('The event time limit must be a positive '
                                      'integer or float!')
+        if self.workspace and self.init_workspace:
+            if not self.workspace == self.init_workspace:
+                raise RaiseorlaunchError('Setting workspace and initial '
+                                         'workspace is ambiguous!')
 
     @staticmethod
     def _log_format_con(window):
@@ -302,6 +310,32 @@ class Raiseorlaunch(object):
         logger.debug('Moving window to workspace: {}'.format(workspace))
         window.command('move container to workspace {}'.format(workspace))
 
+    def _choose_if_multiple(self, running):
+        """
+        If multiple windows are found, determine which one to raise.
+
+        If init_workspace is set, prefer a window on that workspace,
+        otherwise use the first in the tree.
+
+        Returns:
+            Instance of Con().
+        """
+        window = running[0]
+        if self.init_workspace:
+            multi_msg = ('Found multiple windows that match the '
+                         'properties. Using the first in the tree, '
+                         'preferably on initial workspace.')
+            for w in running:
+                if w.workspace().name == self.init_workspace:
+                    window = w
+                    break
+        else:
+            multi_msg = ('Found multiple windows that match the '
+                         'properties. Using the first in the tree.')
+
+        logger.debug(multi_msg)
+        return window
+
     def _handle_running(self, running):
         """
         Handle app is running one or multiple times.
@@ -316,15 +350,17 @@ class Raiseorlaunch(object):
                     return
 
         if len(running) > 1:
-            logger.warning('Found multiple windows that match the '
-                           'properties. Using the first in the tree.')
-        logger.debug('Application is running on workspace "{}": {}'
-                     .format(running[0].workspace().name,
-                             self._log_format_con(running[0])))
-        if self.scratch:
-            self._handle_running_scratch(running[0])
+            window = self._choose_if_multiple(running)
         else:
-            self._handle_running_no_scratch(running[0])
+            window = running[0]
+
+        logger.debug('Application is running on workspace "{}": {}'
+                     .format(window.workspace().name,
+                             self._log_format_con(window)))
+        if self.scratch:
+            self._handle_running_scratch(window)
+        else:
+            self._handle_running_no_scratch(window)
 
     def _handle_running_no_scratch(self, window):
         """
@@ -365,6 +401,7 @@ class Raiseorlaunch(object):
         Args:
             windows: List with instances of Con().
         """
+        logger.debug('Cycling through matching windows.')
         switch = False
         w = None
         windows.append(windows[0])
@@ -388,9 +425,9 @@ class Raiseorlaunch(object):
         """
         Handle app is not running.
         """
-        if self.workspace:
-            if not self.current_ws.name == self.workspace:
-                self.switch_to_workspace_by_name(self.workspace)
+        if self.init_workspace:
+            if not self.current_ws.name == self.init_workspace:
+                self.switch_to_workspace_by_name(self.init_workspace)
         self.i3.on("window::new", self._callback_new_window)
         self.run_command()
         self.i3.main(timeout=self.event_time_limit)
@@ -412,8 +449,8 @@ class Raiseorlaunch(object):
                 self.show_scratch(window)
             if self.con_mark:
                 self.set_con_mark(window)
-            if self.workspace:
-                target_ws = self.workspace
+            if self.init_workspace:
+                target_ws = self.init_workspace
             else:
                 target_ws = self.current_ws.name
 
