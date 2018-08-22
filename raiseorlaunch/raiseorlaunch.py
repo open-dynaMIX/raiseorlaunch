@@ -310,6 +310,32 @@ class Raiseorlaunch(object):
         logger.debug('Moving window to workspace: {}'.format(workspace))
         window.command('move container to workspace {}'.format(workspace))
 
+    def _choose_if_multiple(self, running):
+        """
+        If multiple windows are found, determine which one to raise.
+
+        If init_workspace is set, prefer a window on that workspace,
+        otherwise use the first in the tree.
+
+        Returns:
+            Instance of Con().
+        """
+        window = running[0]
+        if self.init_workspace:
+            multi_msg = ('Found multiple windows that match the '
+                         'properties. Using the first in the tree, '
+                         'preferably on initial workspace.')
+            for w in running:
+                if w.workspace().name == self.init_workspace:
+                    window = w
+                    break
+        else:
+            multi_msg = ('Found multiple windows that match the '
+                         'properties. Using the first in the tree.')
+
+        logger.debug(multi_msg)
+        return window
+
     def _handle_running(self, running):
         """
         Handle app is running one or multiple times.
@@ -324,15 +350,17 @@ class Raiseorlaunch(object):
                     return
 
         if len(running) > 1:
-            logger.warning('Found multiple windows that match the '
-                           'properties. Using the first in the tree.')
-        logger.debug('Application is running on workspace "{}": {}'
-                     .format(running[0].workspace().name,
-                             self._log_format_con(running[0])))
-        if self.scratch:
-            self._handle_running_scratch(running[0])
+            window = self._choose_if_multiple(running)
         else:
-            self._handle_running_no_scratch(running[0])
+            window = running[0]
+
+        logger.debug('Application is running on workspace "{}": {}'
+                     .format(window.workspace().name,
+                             self._log_format_con(window)))
+        if self.scratch:
+            self._handle_running_scratch(window)
+        else:
+            self._handle_running_no_scratch(window)
 
     def _handle_running_no_scratch(self, window):
         """
