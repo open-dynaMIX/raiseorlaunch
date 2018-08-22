@@ -104,6 +104,9 @@ def parse_arguments():
     parser.add_argument('-w', '--workspace', dest='workspace',
                         help='workspace to use')
 
+    parser.add_argument('-W', '--init-workspace', dest='init_workspace',
+                        help='initial workspace')
+
     parser.add_argument('-r', '--scratch', dest='scratch',
                         action='store_true', help='use scratchpad')
 
@@ -157,6 +160,7 @@ def main():
                             scratch=args.scratch,
                             con_mark=args.con_mark,
                             workspace=args.workspace,
+                            init_workspace=args.init_workspace,
                             ignore_case=args.ignore_case,
                             event_time_limit=args.event_time_limit,
                             cycle=args.cycle)

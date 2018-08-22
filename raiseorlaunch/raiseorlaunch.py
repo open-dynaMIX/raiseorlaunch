@@ -51,6 +51,8 @@ class Raiseorlaunch(object):
         wm_instance (str, optional): Regex for the the window instance.
         wm_title (str, optional): Regex for the the window title.
         workspace (str): The workspace that should be used for the application.
+        init_workspace (str): The initial workspace that should be used for
+                              the application.
         scratch (bool, optional): Use the scratchpad.
         ignore_case (bool, optional): Ignore case when comparing
                                       window-properties with provided
@@ -66,6 +68,7 @@ class Raiseorlaunch(object):
                  wm_instance=None,
                  wm_title=None,
                  workspace=None,
+                 init_workspace=None,
                  scratch=False,
                  con_mark=None,
                  ignore_case=False,
@@ -76,6 +79,7 @@ class Raiseorlaunch(object):
         self.wm_instance = wm_instance
         self.wm_title = wm_title
         self.workspace = workspace
+        self.init_workspace = init_workspace if init_workspace else workspace
         self.scratch = scratch
         self.con_mark = con_mark
         self.ignore_case = ignore_case
@@ -107,6 +111,10 @@ class Raiseorlaunch(object):
         if not check_positive(self.event_time_limit):
             raise RaiseorlaunchError('The event time limit must be a positive '
                                      'integer or float!')
+        if self.workspace and self.init_workspace:
+            if not self.workspace == self.init_workspace:
+                raise RaiseorlaunchError('Setting workspace and initial '
+                                         'workspace is ambiguous!')
 
     @staticmethod
     def _log_format_con(window):
@@ -388,9 +396,9 @@ class Raiseorlaunch(object):
         """
         Handle app is not running.
         """
-        if self.workspace:
-            if not self.current_ws.name == self.workspace:
-                self.switch_to_workspace_by_name(self.workspace)
+        if self.init_workspace:
+            if not self.current_ws.name == self.init_workspace:
+                self.switch_to_workspace_by_name(self.init_workspace)
         self.i3.on("window::new", self._callback_new_window)
         self.run_command()
         self.i3.main(timeout=self.event_time_limit)
@@ -412,8 +420,8 @@ class Raiseorlaunch(object):
                 self.show_scratch(window)
             if self.con_mark:
                 self.set_con_mark(window)
-            if self.workspace:
-                target_ws = self.workspace
+            if self.init_workspace:
+                target_ws = self.init_workspace
             else:
                 target_ws = self.current_ws.name
 
