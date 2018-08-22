@@ -401,6 +401,7 @@ class Raiseorlaunch(object):
         Args:
             windows: List with instances of Con().
         """
+        logger.debug('Cycling through matching windows.')
         switch = False
         w = None
         windows.append(windows[0])
