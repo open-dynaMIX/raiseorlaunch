@@ -105,7 +105,7 @@ class Raiseorlaunch(object):
         if not self.wm_class and not self.wm_instance and not self.wm_title:
             raise RaiseorlaunchError('You need to specify '
                                      '"wm_class", "wm_instance" or "wm_title.')
-        if self.workspace and self.scratch:
+        if (self.workspace or self.init_workspace) and self.scratch:
             raise RaiseorlaunchError('You cannot use the scratchpad on a '
                                      'specific workspace.')
         if not check_positive(self.event_time_limit):
