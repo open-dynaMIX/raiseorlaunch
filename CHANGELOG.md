@@ -5,3 +5,4 @@
  - Move created windows to expected workspace #16
  - Window cycling #17
  - Use the new `timeout` argument for i3ipc main loop #19
+ - Move to markdown for README #23
