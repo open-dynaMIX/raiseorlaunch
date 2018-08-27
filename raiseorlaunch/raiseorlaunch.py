@@ -101,6 +101,8 @@ class Raiseorlaunch(object):
         Verify that...
          - ...window properties are provided.
          - ...there is no workspace provided when using the scratchpad
+         - ...event_time_limit, if provided, is a positive int or float
+         - ...workspace and init_workspace are not set to something different
         """
         if not self.wm_class and not self.wm_instance and not self.wm_title:
             raise RaiseorlaunchError('You need to specify '
