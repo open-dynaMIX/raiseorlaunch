@@ -103,8 +103,8 @@ optional arguments:
   -m CON_MARK, --mark CON_MARK
                         con_mark to use when raising and set when launching
   -l EVENT_TIME_LIMIT, --event-time-limit EVENT_TIME_LIMIT
-                        Time limit in seconds to listen to window events when
-                        using the scratchpad. Defaults to 2.
+                        Time limit in seconds to listen to window events after
+                        exec. Defaults to 2
   -i, --ignore-case     ignore case when comparing
   -C, --cycle           cycle through matching windows (this will break
                         workspace_back_and_forth if more than one window

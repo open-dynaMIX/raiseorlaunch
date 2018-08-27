@@ -116,8 +116,8 @@ def parse_arguments():
 
     parser.add_argument('-l', '--event-time-limit', dest='event_time_limit',
                         type=check_time_limit, help='Time limit in seconds to '
-                        'listen to window events when using the scratchpad. '
-                        'Defaults to 2.', default=2)
+                        'listen to window events after exec. Defaults to 2',
+                        default=2)
 
     parser.add_argument('-i', '--ignore-case', dest='ignore_case',
                         action='store_true', help='ignore case when comparing')
