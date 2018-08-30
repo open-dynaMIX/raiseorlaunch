@@ -101,14 +101,13 @@ def parse_arguments():
                         'prior to execution!')
     parser.set_defaults(command=None)
 
-    parser.add_argument('-w', '--workspace', dest='workspace',
-                        help='workspace to use')
-
-    parser.add_argument('-W', '--init-workspace', dest='init_workspace',
-                        help='initial workspace')
-
-    parser.add_argument('-r', '--scratch', dest='scratch',
-                        action='store_true', help='use scratchpad')
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('-w', '--workspace', dest='workspace',
+                       help='workspace to use')
+    group.add_argument('-W', '--init-workspace', dest='init_workspace',
+                       help='initial workspace')
+    group.add_argument('-r', '--scratch', dest='scratch',
+                       action='store_true', help='use scratchpad')
 
     parser.add_argument('-m', '--mark', dest='con_mark',
                         help='con_mark to use when raising and set when '
