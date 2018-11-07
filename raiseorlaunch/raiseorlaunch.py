@@ -8,13 +8,12 @@ for i3 window manager.
 
 __title__ = 'raiseorlaunch'
 __description__ = 'A run-or-raise-application-launcher for i3 window manager.'
-__version__ = '2.0.0'
+__version__ = '2.1.0'
 __license__ = 'MIT'
 __author__ = 'Fabio Rämi'
 
 
 import sys
-from datetime import datetime, timedelta
 import re
 import logging
 try:
@@ -25,6 +24,17 @@ except ImportError:
 
 
 logger = logging.getLogger(__name__)
+
+
+def check_positive(value):
+    try:
+        fvalue = float(value)
+    except ValueError:
+        return False
+    else:
+        if fvalue <= 0:
+            return False
+        return fvalue
 
 
 class RaiseorlaunchError(Exception):
@@ -41,13 +51,16 @@ class Raiseorlaunch(object):
         wm_instance (str, optional): Regex for the the window instance.
         wm_title (str, optional): Regex for the the window title.
         workspace (str): The workspace that should be used for the application.
-        scratch (bool, optional): Indicate if the scratchpad should be used.
+        init_workspace (str): The initial workspace that should be used for
+                              the application.
+        scratch (bool, optional): Use the scratchpad.
         ignore_case (bool, optional): Ignore case when comparing
                                       window-properties with provided
                                       arguments.
         event_time_limit (int or float, optional): Time limit in seconds to
                                                    listen to window events
                                                    when using the scratchpad.
+        cycle (bool, optional): Cycle through matching windows.
     """
     def __init__(self,
                  command,
@@ -55,19 +68,23 @@ class Raiseorlaunch(object):
                  wm_instance=None,
                  wm_title=None,
                  workspace=None,
+                 init_workspace=None,
                  scratch=False,
                  con_mark=None,
                  ignore_case=False,
-                 event_time_limit=2):
+                 event_time_limit=2,
+                 cycle=False):
         self.command = command
         self.wm_class = wm_class
         self.wm_instance = wm_instance
         self.wm_title = wm_title
         self.workspace = workspace
+        self.init_workspace = init_workspace if init_workspace else workspace
         self.scratch = scratch
         self.con_mark = con_mark
         self.ignore_case = ignore_case
-        self.event_time_limit = event_time_limit if event_time_limit else 2
+        self.event_time_limit = event_time_limit
+        self.cycle = cycle
 
         self.regex_flags = []
         if self.ignore_case:
@@ -77,23 +94,32 @@ class Raiseorlaunch(object):
 
         self.i3 = i3ipc.Connection()
         self.tree = self.i3.get_tree()
-
-        self._timestamp = None
+        self.current_ws = self.get_current_workspace()
 
     def _check_args(self):
         """
         Verify that...
          - ...window properties are provided.
          - ...there is no workspace provided when using the scratchpad
+         - ...event_time_limit, if provided, is a positive int or float
+         - ...workspace and init_workspace are not set to something different
         """
         if not self.wm_class and not self.wm_instance and not self.wm_title:
             raise RaiseorlaunchError('You need to specify '
                                      '"wm_class", "wm_instance" or "wm_title.')
-        if self.workspace and self.scratch:
+        if (self.workspace or self.init_workspace) and self.scratch:
             raise RaiseorlaunchError('You cannot use the scratchpad on a '
                                      'specific workspace.')
+        if not check_positive(self.event_time_limit):
+            raise RaiseorlaunchError('The event time limit must be a positive '
+                                     'integer or float!')
+        if self.workspace and self.init_workspace:
+            if not self.workspace == self.init_workspace:
+                raise RaiseorlaunchError('Setting workspace and initial '
+                                         'workspace is ambiguous!')
 
-    def _log_format_con(self, window):
+    @staticmethod
+    def _log_format_con(window):
         """
         Create an informatinal string for logging leaves.
 
@@ -180,11 +206,8 @@ class Raiseorlaunch(object):
         """
         Compare windows in list with provided properties.
 
-        Args:
-            window_list: Instances of Con().
-
         Returns:
-            Con() instance if found, None otherwise.
+            List of Con() instances if found, None otherwise.
         """
         if self.con_mark:
             found = self._find_marked_window()
@@ -196,10 +219,9 @@ class Raiseorlaunch(object):
                     found.append(leave)
 
             if len(found) > 1:
-                logger.warning('Found multiple windows that match the '
-                               'properties. Using one at random.')
+                logger.debug('Multiple windows match the properties.')
 
-        return found[0] if found else None
+        return found if found else None
 
     def run_command(self):
         """
@@ -247,9 +269,6 @@ class Raiseorlaunch(object):
 
         Args:
             window: Instance of Con().
-
-        Returns:
-            bool: True if successful, False otherwise.
         """
         logger.debug('Enabling floating mode on newly created window: {}'
                      .format(self._log_format_con(window)))
@@ -266,9 +285,6 @@ class Raiseorlaunch(object):
 
         Args:
             window: Instance of Con().
-
-        Returns:
-            bool: True if successful, False otherwise.
         """
         logger.debug('Toggling visibility of scratch window: {}'.format(
             self._log_format_con(window)))
@@ -280,78 +296,154 @@ class Raiseorlaunch(object):
 
         Args:
             name (str): workspace name
-
-        Returns:
-            bool: True if successful, False otherwise.
         """
         logger.debug('Switching to workspace: {}'.format(name))
         self.i3.command('workspace {}'.format(name))
 
-    def _handle_running(self, window, current_ws):
+    @staticmethod
+    def move_con_to_workspace_by_name(window, workspace):
+        """
+        Move window to workspace.
+
+        Args:
+            window: Instance of Con().
+            workspace: str
+        """
+        logger.debug('Moving window to workspace: {}'.format(workspace))
+        window.command('move container to workspace {}'.format(workspace))
+
+    def _choose_if_multiple(self, running):
+        """
+        If multiple windows are found, determine which one to raise.
+
+        If init_workspace is set, prefer a window on that workspace,
+        otherwise use the first in the tree.
+
+        Returns:
+            Instance of Con().
+        """
+        window = running[0]
+        if self.init_workspace:
+            multi_msg = ('Found multiple windows that match the '
+                         'properties. Using the first in the tree, '
+                         'preferably on initial workspace.')
+            for w in running:
+                if w.workspace().name == self.init_workspace:
+                    window = w
+                    break
+        else:
+            multi_msg = ('Found multiple windows that match the '
+                         'properties. Using the first in the tree.')
+
+        logger.debug(multi_msg)
+        return window
+
+    def _handle_running(self, running):
+        """
+        Handle app is running one or multiple times.
+
+        Args:
+            running: List of Con() instances.
+        """
+        if self.cycle and len(running) > 1:
+            for w in running:
+                if w.focused:
+                    self._handle_running_cycle(running)
+                    return
+
+        if len(running) > 1:
+            window = self._choose_if_multiple(running)
+        else:
+            window = running[0]
+
+        logger.debug('Application is running on workspace "{}": {}'
+                     .format(window.workspace().name,
+                             self._log_format_con(window)))
+        if self.scratch:
+            self._handle_running_scratch(window)
+        else:
+            self._handle_running_no_scratch(window)
+
+    def _handle_running_no_scratch(self, window):
         """
         Handle app is running and not explicitly using scratchpad.
 
         Args:
             window: Instance of Con().
-            current_ws: Instance of Con().
         """
         if not window.focused:
             self.focus_window(window)
         else:
-            if current_ws.name == self.get_current_workspace().name:
+            if self.current_ws.name == self.get_current_workspace().name:
                 logger.debug('We\'re on the right workspace. '
                              'Switching anyway to retain '
                              'workspace_back_and_forth '
                              'functionality.')
-                self.switch_to_workspace_by_name(current_ws.name)
+                self.switch_to_workspace_by_name(self.current_ws.name)
 
-    def _handle_running_scratch(self, window, current_ws):
+    def _handle_running_scratch(self, window):
         """
         Handle app is running and explicitly using scratchpad.
 
         Args:
             window: Instance of Con().
-            current_ws: Instance of Con().
         """
         if not window.focused:
-            if current_ws.name == window.workspace().name:
+            if self.current_ws.name == window.workspace().name:
                 self.focus_window(window)
             else:
                 self.show_scratch(window)
         else:
             self.show_scratch(window)
 
+    def _handle_running_cycle(self, windows):
+        """
+        Handle cycling through running apps.
+
+        Args:
+            windows: List with instances of Con().
+        """
+        logger.debug('Cycling through matching windows.')
+        switch = False
+        w = None
+        windows.append(windows[0])
+        for window in windows:
+            if switch:
+                w = window
+                break
+            if window.focused:
+                switch = True
+
+        if w:
+            logger.debug('Application is running on workspace "{}": {}'
+                         .format(w.workspace().name,
+                                 self._log_format_con(w)))
+            self.focus_window(w)
+        else:
+            logger.error('No running windows received. '
+                         'This should not happen!')
+
     def _handle_not_running(self):
         """
         Handle app is not running.
         """
-        if self.scratch or self.con_mark:
-            self.i3.on("window::new", self._callback_new_window)
-            self.run_command()
-            self._timestamp = datetime.now()
-            self.i3.main()
-        else:
-            if self.workspace:
-                current_ws = self.get_current_workspace()
-                if not current_ws.name == self.workspace:
-                    self.switch_to_workspace_by_name(self.workspace)
-            self.run_command()
+        if self.init_workspace:
+            if not self.current_ws.name == self.init_workspace:
+                self.switch_to_workspace_by_name(self.init_workspace)
+        self.i3.on("window::new", self._callback_new_window)
+        self.run_command()
+        self.i3.main(timeout=self.event_time_limit)
 
     def _callback_new_window(self, connection, event):
         """
         Callback function for window::new events.
 
-        This handles moving new windows to the scratchpad
-        and setting con_marks.
+        This handles moving new windows to the desired workspace or
+        the scratchpad and setting con_marks.
         """
         window = event.container
         logger.debug('Event callback: {}'
                      .format(self._log_format_con(window)))
-
-        timediff = datetime.now() - self._timestamp
-        if timediff > timedelta(seconds=self.event_time_limit):
-            logger.debug('Time limit exceeded. Exiting.')
-            exit(0)
 
         if self._compare_running(window):
             if self.scratch:
@@ -359,6 +451,16 @@ class Raiseorlaunch(object):
                 self.show_scratch(window)
             if self.con_mark:
                 self.set_con_mark(window)
+            if self.init_workspace:
+                target_ws = self.init_workspace
+            else:
+                target_ws = self.current_ws.name
+
+            # This is necessary, because window.workspace() returns None
+            w = connection.get_tree().find_by_id(window.id)
+
+            if not w.workspace().name == target_ws:
+                self.move_con_to_workspace_by_name(w, target_ws)
 
     def run(self):
         """
@@ -367,14 +469,7 @@ class Raiseorlaunch(object):
         """
         running = self._is_running()
         if running:
-            current_ws = self.get_current_workspace()
-            logger.debug('Application is running on workspace "{}": {}'
-                         .format(current_ws.name,
-                                 self._log_format_con(running)))
-            if self.scratch:
-                self._handle_running_scratch(running, current_ws)
-            else:
-                self._handle_running(running, current_ws)
+            self._handle_running(running)
         else:
             logger.debug('Application is not running.')
             self._handle_not_running()

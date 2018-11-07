@@ -1,6 +1,6 @@
-from __future__ import absolute_import
 from raiseorlaunch.raiseorlaunch import (Raiseorlaunch,
                                          RaiseorlaunchError,
+                                         check_positive,
                                          __title__,
                                          __description__,
                                          __version__,

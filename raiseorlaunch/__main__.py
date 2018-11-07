@@ -11,7 +11,8 @@ import argparse
 from distutils import spawn
 import logging
 from raiseorlaunch import (Raiseorlaunch, RaiseorlaunchError,
-                           __title__, __version__, __description__)
+                           __title__, __version__,
+                           __description__, check_positive)
 
 
 logger = logging.getLogger(__name__)
@@ -57,20 +58,22 @@ def set_command(parser, args):
     return args
 
 
-def check_positive(value):
-    def raise_exception():
-        """
-        Raise an ArgumentTypeError.
-        """
-        raise argparse.ArgumentTypeError('{} is not a positive integer or '
-                                         'float'.format(value))
-    try:
-        fvalue = float(value)
-    except ValueError:
-        raise_exception()
-    if fvalue <= 0:
-        raise_exception()
-    return fvalue
+def check_time_limit(value):
+    """
+    Validate value for --event-time-limit
+
+    Args:
+        value: provided value
+
+    Returns:
+        float if valid otherwise raises Exception
+    """
+    new_value = check_positive(value)
+    if not new_value:
+        raise argparse.ArgumentTypeError('event-time-limit is not a positive '
+                                         'integer or float!')
+    else:
+        return new_value
 
 
 def parse_arguments():
@@ -98,23 +101,30 @@ def parse_arguments():
                         'prior to execution!')
     parser.set_defaults(command=None)
 
-    parser.add_argument('-w', '--workspace', dest='workspace',
-                        help='workspace to use')
-
-    parser.add_argument('-r', '--scratch', dest='scratch',
-                        action='store_true', help='use scratchpad')
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('-w', '--workspace', dest='workspace',
+                       help='workspace to use')
+    group.add_argument('-W', '--init-workspace', dest='init_workspace',
+                       help='initial workspace')
+    group.add_argument('-r', '--scratch', dest='scratch',
+                       action='store_true', help='use scratchpad')
 
     parser.add_argument('-m', '--mark', dest='con_mark',
                         help='con_mark to use when raising and set when '
                         'launching')
 
     parser.add_argument('-l', '--event-time-limit', dest='event_time_limit',
-                        type=check_positive, help='Time limit in seconds to '
-                        'listen to window events when using the scratchpad. '
-                        'Defaults to 2.')
+                        type=check_time_limit, help='Time limit in seconds to '
+                        'listen to window events after exec. Defaults to 2',
+                        default=2)
 
     parser.add_argument('-i', '--ignore-case', dest='ignore_case',
                         action='store_true', help='ignore case when comparing')
+
+    parser.add_argument('-C', '--cycle', dest='cycle',
+                        action='store_true', help='cycle through matching '
+                        'windows (this will break workspace_back_and_forth if '
+                        'more than one window matches the given properties)')
 
     parser.add_argument('-d', '--debug', dest='debug',
                         help='display debug messages',
@@ -149,12 +159,14 @@ def main():
                             scratch=args.scratch,
                             con_mark=args.con_mark,
                             workspace=args.workspace,
+                            init_workspace=args.init_workspace,
                             ignore_case=args.ignore_case,
-                            event_time_limit=args.event_time_limit)
+                            event_time_limit=args.event_time_limit,
+                            cycle=args.cycle)
     except RaiseorlaunchError as e:
         parser.error(str(e))
-
-    rol.run()
+    else:
+        rol.run()
 
 
 if __name__ == '__main__':
