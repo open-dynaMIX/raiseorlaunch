@@ -51,8 +51,8 @@ class Raiseorlaunch(object):
         wm_instance (str, optional): Regex for the the window instance.
         wm_title (str, optional): Regex for the the window title.
         workspace (str): The workspace that should be used for the application.
-        init_workspace (str): The initial workspace that should be used for
-                              the application.
+        target_workspace (str): The workspace that should be used for the
+                                application.
         scratch (bool, optional): Use the scratchpad.
         ignore_case (bool, optional): Ignore case when comparing
                                       window-properties with provided
@@ -61,6 +61,8 @@ class Raiseorlaunch(object):
                                                    listen to window events
                                                    when using the scratchpad.
         cycle (bool, optional): Cycle through matching windows.
+        leave_fullscreen (bool, optional): Leave fullscreen on target
+                                           workspace.
     """
     def __init__(self,
                  command,
@@ -68,23 +70,26 @@ class Raiseorlaunch(object):
                  wm_instance=None,
                  wm_title=None,
                  workspace=None,
-                 init_workspace=None,
+                 target_workspace=None,
                  scratch=False,
                  con_mark=None,
                  ignore_case=False,
                  event_time_limit=2,
-                 cycle=False):
+                 cycle=False,
+                 leave_fullscreen=False):
         self.command = command
         self.wm_class = wm_class
         self.wm_instance = wm_instance
         self.wm_title = wm_title
         self.workspace = workspace
-        self.init_workspace = init_workspace if init_workspace else workspace
+        self.target_workspace = (
+            target_workspace if target_workspace else workspace)
         self.scratch = scratch
         self.con_mark = con_mark
         self.ignore_case = ignore_case
         self.event_time_limit = event_time_limit
         self.cycle = cycle
+        self.leave_fullscreen = leave_fullscreen
 
         self.regex_flags = []
         if self.ignore_case:
@@ -107,14 +112,14 @@ class Raiseorlaunch(object):
         if not self.wm_class and not self.wm_instance and not self.wm_title:
             raise RaiseorlaunchError('You need to specify '
                                      '"wm_class", "wm_instance" or "wm_title.')
-        if (self.workspace or self.init_workspace) and self.scratch:
+        if (self.workspace or self.target_workspace) and self.scratch:
             raise RaiseorlaunchError('You cannot use the scratchpad on a '
                                      'specific workspace.')
         if not check_positive(self.event_time_limit):
             raise RaiseorlaunchError('The event time limit must be a positive '
                                      'integer or float!')
-        if self.workspace and self.init_workspace:
-            if not self.workspace == self.init_workspace:
+        if self.workspace and self.target_workspace:
+            if not self.workspace == self.target_workspace:
                 raise RaiseorlaunchError('Setting workspace and initial '
                                          'workspace is ambiguous!')
 
@@ -323,12 +328,12 @@ class Raiseorlaunch(object):
             Instance of Con().
         """
         window = running[0]
-        if self.init_workspace:
+        if self.target_workspace:
             multi_msg = ('Found multiple windows that match the '
                          'properties. Using the first in the tree, '
-                         'preferably on initial workspace.')
+                         'preferably on target workspace.')
             for w in running:
-                if w.workspace().name == self.init_workspace:
+                if w.workspace().name == self.target_workspace:
                     window = w
                     break
         else:
@@ -418,6 +423,7 @@ class Raiseorlaunch(object):
             logger.debug('Application is running on workspace "{}": {}'
                          .format(w.workspace().name,
                                  self._log_format_con(w)))
+
             self.focus_window(w)
         else:
             logger.error('No running windows received. '
@@ -427,9 +433,13 @@ class Raiseorlaunch(object):
         """
         Handle app is not running.
         """
-        if self.init_workspace:
-            if not self.current_ws.name == self.init_workspace:
-                self.switch_to_workspace_by_name(self.init_workspace)
+        if self.target_workspace:
+            if not self.current_ws.name == self.target_workspace:
+                self.switch_to_workspace_by_name(self.target_workspace)
+
+        if self.leave_fullscreen:
+            self.leave_fullscreen_on_workspace(self.target_workspace)
+
         self.i3.on("window::new", self._callback_new_window)
         self.run_command()
         self.i3.main(timeout=self.event_time_limit)
@@ -451,8 +461,8 @@ class Raiseorlaunch(object):
                 self.show_scratch(window)
             if self.con_mark:
                 self.set_con_mark(window)
-            if self.init_workspace:
-                target_ws = self.init_workspace
+            if self.target_workspace:
+                target_ws = self.target_workspace
             else:
                 target_ws = self.current_ws.name
 
@@ -461,6 +471,29 @@ class Raiseorlaunch(object):
 
             if not w.workspace().name == target_ws:
                 self.move_con_to_workspace_by_name(w, target_ws)
+
+    def leave_fullscreen_on_workspace(self, workspace_name, exceptions=None):
+        """
+        Make sure no application is in fullscreen mode on provided workspace.
+
+        :param workspace_name: str
+        :param exceptions: list of Con()
+        :return: None
+        """
+        exceptions = exceptions if exceptions else []
+        cons_on_ws = self.tree.find_named(
+            '^{}$'.format(workspace_name)
+        )
+        cons = cons_on_ws[0].find_fullscreen() if cons_on_ws else []
+        for con in cons:
+            if con.type == 'workspace' or con in exceptions:
+                continue
+            logger.debug(
+                'Leaving fullscreen for con: {}'.format(
+                    self._log_format_con(con)
+                )
+            )
+            con.command('fullscreen')
 
     def run(self):
         """
