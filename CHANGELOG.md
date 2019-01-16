@@ -1,3 +1,10 @@
+# v2.2.0
+
+# Features
+ - Add flag to disable existing fullscreen #27
+ - Rename --init-workspace to --target-workspace #28
+
+
 # v2.1.0
 
 # Features
