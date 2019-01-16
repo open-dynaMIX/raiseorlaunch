@@ -1,8 +1,8 @@
-from raiseorlaunch.raiseorlaunch import (Raiseorlaunch,
-                                         RaiseorlaunchError,
-                                         check_positive,
-                                         __title__,
-                                         __description__,
-                                         __version__,
-                                         __license__,
-                                         __author__)
+from raiseorlaunch.raiseorlaunch import (Raiseorlaunch,  # noqa
+                                         RaiseorlaunchError,  # noqa
+                                         check_positive,  # noqa
+                                         __title__,  # noqa
+                                         __description__,  # noqa
+                                         __version__,  # noqa
+                                         __license__,  # noqa
+                                         __author__)  # noqa

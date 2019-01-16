@@ -78,8 +78,9 @@ or:
 
 ```
 usage: raiseorlaunch [-h] [-c WM_CLASS] [-s WM_INSTANCE] [-t WM_TITLE]
-                     [-e COMMAND] [-w WORKSPACE] [-W INIT_WORKSPACE] [-r]
-                     [-m CON_MARK] [-l EVENT_TIME_LIMIT] [-i] [-C] [-d] [-v]
+                     [-e COMMAND] [-w WORKSPACE | -W TARGET_WORKSPACE | -r]
+                     [-m CON_MARK] [-l EVENT_TIME_LIMIT] [-i] [-C] [-f] [-d]
+                     [-v]
 
 A run-or-raise-application-launcher for i3 window manager.
 
@@ -97,8 +98,8 @@ optional arguments:
                         not be checked prior to execution!
   -w WORKSPACE, --workspace WORKSPACE
                         workspace to use
-  -W INIT_WORKSPACE, --init-workspace INIT_WORKSPACE
-                        initial workspace
+  -W TARGET_WORKSPACE, --target-workspace TARGET_WORKSPACE, --init-workspace TARGET_WORKSPACE
+                        target workspace
   -r, --scratch         use scratchpad
   -m CON_MARK, --mark CON_MARK
                         con_mark to use when raising and set when launching
@@ -109,8 +110,11 @@ optional arguments:
   -C, --cycle           cycle through matching windows (this will break
                         workspace_back_and_forth if more than one window
                         matches the given properties)
+  -f, --leave-fullscreen
+                        Leave fullscreen on target workspace
   -d, --debug           display debug messages
   -v, --version         show program's version number and exit
+
 ```
 
 ## Examples

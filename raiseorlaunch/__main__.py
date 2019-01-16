@@ -104,8 +104,8 @@ def parse_arguments():
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-w', '--workspace', dest='workspace',
                        help='workspace to use')
-    group.add_argument('-W', '--init-workspace', dest='init_workspace',
-                       help='initial workspace')
+    group.add_argument('-W', '--target-workspace', '--init-workspace',
+                       dest='target_workspace', help='target workspace')
     group.add_argument('-r', '--scratch', dest='scratch',
                        action='store_true', help='use scratchpad')
 
@@ -125,6 +125,10 @@ def parse_arguments():
                         action='store_true', help='cycle through matching '
                         'windows (this will break workspace_back_and_forth if '
                         'more than one window matches the given properties)')
+
+    parser.add_argument('-f', '--leave-fullscreen', dest='leave_fullscreen',
+                        action='store_true', help='Leave fullscreen on target '
+                        'workspace')
 
     parser.add_argument('-d', '--debug', dest='debug',
                         help='display debug messages',
@@ -159,10 +163,11 @@ def main():
                             scratch=args.scratch,
                             con_mark=args.con_mark,
                             workspace=args.workspace,
-                            init_workspace=args.init_workspace,
+                            target_workspace=args.target_workspace,
                             ignore_case=args.ignore_case,
                             event_time_limit=args.event_time_limit,
-                            cycle=args.cycle)
+                            cycle=args.cycle,
+                            leave_fullscreen=args.leave_fullscreen)
     except RaiseorlaunchError as e:
         parser.error(str(e))
     else:
