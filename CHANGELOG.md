@@ -1,3 +1,9 @@
+# v2.2.1
+
+# Fixes
+ - `--leave-fullscreen` doesn't work if no workspace has been provided #30
+
+
 # v2.2.0
 
 # Features

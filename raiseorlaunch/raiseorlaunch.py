@@ -8,7 +8,7 @@ for i3 window manager.
 
 __title__ = 'raiseorlaunch'
 __description__ = 'A run-or-raise-application-launcher for i3 window manager.'
-__version__ = '2.2.0'
+__version__ = '2.2.1'
 __license__ = 'MIT'
 __author__ = 'Fabio Rämi'
 
@@ -82,8 +82,7 @@ class Raiseorlaunch(object):
         self.wm_instance = wm_instance
         self.wm_title = wm_title
         self.workspace = workspace
-        self.target_workspace = (
-            target_workspace if target_workspace else workspace)
+        self.target_workspace = target_workspace or workspace
         self.scratch = scratch
         self.con_mark = con_mark
         self.ignore_case = ignore_case
@@ -91,9 +90,7 @@ class Raiseorlaunch(object):
         self.cycle = cycle
         self.leave_fullscreen = leave_fullscreen
 
-        self.regex_flags = []
-        if self.ignore_case:
-            self.regex_flags.append(re.IGNORECASE)
+        self.regex_flags = [re.IGNORECASE] if self.ignore_case else []
 
         self._check_args()
 
@@ -162,9 +159,8 @@ class Raiseorlaunch(object):
         for (pattern, value) in [(self.wm_class, window.window_class),
                                  (self.wm_instance, window.window_instance),
                                  (self.wm_title, window.name)]:
-            if pattern:
-                if not self._match_regex(pattern, value):
-                    return False
+            if pattern and not self._match_regex(pattern, value):
+                return False
 
         logger.debug('Window match: {}'.format(self._log_format_con(window)))
         return True
@@ -317,6 +313,32 @@ class Raiseorlaunch(object):
         logger.debug('Moving window to workspace: {}'.format(workspace))
         window.command('move container to workspace {}'.format(workspace))
 
+    def leave_fullscreen_on_workspace(self, workspace_name, exceptions=None):
+        """
+        Make sure no application is in fullscreen mode on provided workspace.
+
+        Args:
+            workspace_name: str
+            exceptions: list of Con()
+
+        Returns:
+            None
+        """
+        exceptions = exceptions if exceptions else []
+        cons_on_ws = self.tree.find_named(
+            '^{}$'.format(workspace_name)
+        )
+        cons = cons_on_ws[0].find_fullscreen() if cons_on_ws else []
+        for con in cons:
+            if con.type == 'workspace' or con in exceptions:
+                continue
+            logger.debug(
+                'Leaving fullscreen for con: {}'.format(
+                    self._log_format_con(con)
+                )
+            )
+            con.command('fullscreen')
+
     def _choose_if_multiple(self, running):
         """
         If multiple windows are found, determine which one to raise.
@@ -324,9 +346,15 @@ class Raiseorlaunch(object):
         If init_workspace is set, prefer a window on that workspace,
         otherwise use the first in the tree.
 
+        Args:
+            running: list of Con()
+
         Returns:
             Instance of Con().
         """
+        if len(running) == 1:
+            return running[0]
+
         window = running[0]
         if self.target_workspace:
             multi_msg = ('Found multiple windows that match the '
@@ -350,16 +378,16 @@ class Raiseorlaunch(object):
         Args:
             running: List of Con() instances.
         """
+        # there is no need to do anything if self.leave_fullscreen is True,
+        # because focussing the window will take care of that.
+
         if self.cycle and len(running) > 1:
             for w in running:
                 if w.focused:
                     self._handle_running_cycle(running)
                     return
 
-        if len(running) > 1:
-            window = self._choose_if_multiple(running)
-        else:
-            window = running[0]
+        window = self._choose_if_multiple(running)
 
         logger.debug('Application is running on workspace "{}": {}'
                      .format(window.workspace().name,
@@ -438,7 +466,8 @@ class Raiseorlaunch(object):
                 self.switch_to_workspace_by_name(self.target_workspace)
 
         if self.leave_fullscreen:
-            self.leave_fullscreen_on_workspace(self.target_workspace)
+            self.leave_fullscreen_on_workspace(
+                self.target_workspace or self.current_ws.name)
 
         self.i3.on("window::new", self._callback_new_window)
         self.run_command()
@@ -461,39 +490,14 @@ class Raiseorlaunch(object):
                 self.show_scratch(window)
             if self.con_mark:
                 self.set_con_mark(window)
-            if self.target_workspace:
-                target_ws = self.target_workspace
-            else:
-                target_ws = self.current_ws.name
+
+            target_ws = self.target_workspace or self.current_ws.name
 
             # This is necessary, because window.workspace() returns None
             w = connection.get_tree().find_by_id(window.id)
 
             if not w.workspace().name == target_ws:
                 self.move_con_to_workspace_by_name(w, target_ws)
-
-    def leave_fullscreen_on_workspace(self, workspace_name, exceptions=None):
-        """
-        Make sure no application is in fullscreen mode on provided workspace.
-
-        :param workspace_name: str
-        :param exceptions: list of Con()
-        :return: None
-        """
-        exceptions = exceptions if exceptions else []
-        cons_on_ws = self.tree.find_named(
-            '^{}$'.format(workspace_name)
-        )
-        cons = cons_on_ws[0].find_fullscreen() if cons_on_ws else []
-        for con in cons:
-            if con.type == 'workspace' or con in exceptions:
-                continue
-            logger.debug(
-                'Leaving fullscreen for con: {}'.format(
-                    self._log_format_con(con)
-                )
-            )
-            con.command('fullscreen')
 
     def run(self):
         """

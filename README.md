@@ -7,24 +7,25 @@ A run-or-raise-application-launcher for [i3 window manager](https://i3wm.org/).
 
 ## Features
 
--   If a provided application is running, focus it's window, otherwise
-    run it
--   Provide a regex for window class, instance and/or title to compare
-    with running windows
--   Optionally enable case-insensitive comparison
--   Optionally provide a workspace to use for raising and running
--   Optionally provide an initial workspace to run the application
--   Optionally use the scratchpad for raising and running
--   Optionally provide a con_mark for raising and running
--   workspace_auto_back_and_forth (if enabled) remains functional
--   Optionally cycle through matching windows (this will break
-    workspace_auto_back_and_forth if more than one window matches
-    the given properties)
--   Created windows will always be moved to the expected workspace. This
-    fixes the behaviour of applications that don't implement
-    startup-notifications. By default this works for windows created
-    within 2 seconds. The timeout is configurable with
-    `-l/--event-time-limit`
+ - If a provided application is running, focus it's window, otherwise
+   run it
+ - Provide a regex for window class, instance and/or title to compare
+   with running windows
+ - Optionally enable case-insensitive comparison
+ - Optionally provide a workspace to use for raising and running
+ - Optionally provide an initial workspace to run the application
+ - Optionally use the scratchpad for raising and running
+ - Optionally provide a con_mark for raising and running
+ - workspace_auto_back_and_forth (if enabled) remains functional
+ - Optionally cycle through matching windows (this will break
+   workspace_auto_back_and_forth if more than one window matches
+   the given properties)
+ - Optionally leave fullscreen on target workspace
+ - Created windows will always be moved to the expected workspace. This
+   fixes the behaviour of applications that don't implement
+   startup-notifications. By default this works for windows created
+   within 2 seconds. The timeout is configurable with
+   `-l/--event-time-limit`
 
 ## Installation
 
