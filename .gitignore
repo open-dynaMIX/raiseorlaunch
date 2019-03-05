@@ -18,3 +18,4 @@ pyenv/
 pyenv27/
 
 .idea/
+.python-version
