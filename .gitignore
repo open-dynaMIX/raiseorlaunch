@@ -12,9 +12,14 @@ dist/
 pyenv/
 pyenv.bak/
 
+# tests
+.tox/
+.coverage
+
 # custom files
 test.py
 pyenv/
 pyenv27/
 
 .idea/
+.python-version
