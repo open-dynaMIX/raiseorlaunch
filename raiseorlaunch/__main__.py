@@ -9,6 +9,7 @@ for i3 window manager.
 import argparse
 import logging
 import os
+import sys
 from distutils import spawn
 
 from raiseorlaunch import (
@@ -33,13 +34,15 @@ def verify_app(parser, application):
         Raise a parser error.
         """
         parser.error(
-            "{} is not an executable! Did you forget to supply -e?".format(application)
+            '"{}" is not an executable! Did you forget to supply -e?'.format(
+                application
+            )
         )
 
     is_exe = spawn.find_executable(application)
     if not is_exe:
         raise_exception()
-    elif is_exe == application:
+    elif is_exe == application:  # pragma: no cover
         if not os.access(application, os.X_OK):
             raise_exception()
     return application
@@ -78,13 +81,13 @@ def check_time_limit(value):
     new_value = check_positive(value)
     if not new_value:
         raise argparse.ArgumentTypeError(
-            "event-time-limit is not a positive " "integer or float!"
+            "event-time-limit is not a positive integer or float!"
         )
     else:
         return new_value
 
 
-def parse_arguments():
+def parse_arguments(args):
     """
     Parse all arguments.
     """
@@ -179,7 +182,7 @@ def parse_arguments():
 
     parser.add_argument("-v", "--version", action="version", version=__version__)
 
-    args = parser.parse_args()
+    args = parser.parse_args(args)
 
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
@@ -193,7 +196,7 @@ def main():
     """
     Main CLI function for raiseorlaunch.
     """
-    args, parser = parse_arguments()
+    args, parser = parse_arguments(sys.argv[1:])
 
     logger.debug("Provided arguments: {}".format(args))
 
@@ -218,5 +221,5 @@ def main():
         rol.run()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()

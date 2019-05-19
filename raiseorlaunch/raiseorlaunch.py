@@ -19,7 +19,7 @@ import sys
 
 try:
     import i3ipc
-except ImportError:
+except ImportError:  # pragma: no cover
     print("\033[31;1mError: Module i3ipc not found.\033[0m", file=sys.stderr)
     sys.exit(1)
 
@@ -51,8 +51,8 @@ class Raiseorlaunch(object):
         wm_class (str, optional): Regex for the the window class.
         wm_instance (str, optional): Regex for the the window instance.
         wm_title (str, optional): Regex for the the window title.
-        workspace (str): The workspace that should be used for the application.
-        target_workspace (str): The workspace that should be used for the
+        workspace (str, optional): The workspace that should be used for the application.
+        target_workspace (str, optional): The workspace that should be used for the
                                 application.
         scratch (bool, optional): Use the scratchpad.
         ignore_case (bool, optional): Ignore case when comparing
@@ -116,16 +116,16 @@ class Raiseorlaunch(object):
             )
         if (self.workspace or self.target_workspace) and self.scratch:
             raise RaiseorlaunchError(
-                "You cannot use the scratchpad on a " "specific workspace."
+                "You cannot use the scratchpad on a specific workspace."
             )
         if not check_positive(self.event_time_limit):
             raise RaiseorlaunchError(
-                "The event time limit must be a positive " "integer or float!"
+                "The event time limit must be a positive integer or float!"
             )
         if self.workspace and self.target_workspace:
             if not self.workspace == self.target_workspace:
                 raise RaiseorlaunchError(
-                    "Setting workspace and initial " "workspace is ambiguous!"
+                    "Setting workspace and initial workspace is ambiguous!"
                 )
 
     @staticmethod
@@ -225,16 +225,16 @@ class Raiseorlaunch(object):
             List of Con() instances if found, None otherwise.
         """
         if self.con_mark:
-            found = self._find_marked_window()
-        else:
-            window_list = self._get_window_list()
-            found = []
-            for leave in window_list:
-                if self._compare_running(leave):
-                    found.append(leave)
+            return self._find_marked_window()
 
-            if len(found) > 1:
-                logger.debug("Multiple windows match the properties.")
+        window_list = self._get_window_list()
+        found = []
+        for leave in window_list:
+            if self._compare_running(leave):
+                found.append(leave)
+
+        if len(found) > 1:  # pragma: no cover
+            logger.debug("Multiple windows match the properties.")
 
         return found if found else None
 
@@ -468,7 +468,7 @@ class Raiseorlaunch(object):
         switch = False
         w = None
         windows.append(windows[0])
-        for window in windows:
+        for window in windows:  # pragma: no branch
             if switch:
                 w = window
                 break
@@ -483,8 +483,8 @@ class Raiseorlaunch(object):
             )
 
             self.focus_window(w)
-        else:
-            logger.error("No running windows received. " "This should not happen!")
+        else:  # pragma: no cover
+            logger.error("No running windows received. This should not happen!")
 
     def _handle_not_running(self):
         """
