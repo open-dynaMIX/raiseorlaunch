@@ -6,16 +6,16 @@ import pytest
 from raiseorlaunch import Raiseorlaunch, __main__ as main
 
 
-def test_arguments_all(default_args_cli):
+def test_arguments_all(default_args_cli, mocker):
     initial_args = [
         "--class",
-        "Qutebrowser",
+        "Coolapp",
         "--instance",
         "instance",
         "--title",
         "title",
         "--workspace",
-        "QB",
+        "CA",
         "--event-time-limit",
         "7",
         "--ignore-case",
@@ -25,11 +25,11 @@ def test_arguments_all(default_args_cli):
     ]
     default_args_cli.update(
         {
-            "wm_class": "Qutebrowser",
+            "wm_class": "Coolapp",
             "wm_instance": "instance",
             "wm_title": "title",
-            "command": "qutebrowser",
-            "workspace": "QB",
+            "command": "coolapp",
+            "workspace": "CA",
             "event_time_limit": 7.0,
             "ignore_case": True,
             "cycle": True,
@@ -37,6 +37,7 @@ def test_arguments_all(default_args_cli):
             "debug": True,
         }
     )
+    mocker.patch.object(main.spawn, "find_executable", return_value=True)
     expected_args = Namespace(**default_args_cli)
     args = main.parse_arguments(initial_args)[0]
     assert args == expected_args
@@ -76,10 +77,11 @@ def test_check_time_limit():
 
 
 def test_main(mocker, sys_argv_handler):
+    mocker.patch.object(main.spawn, "find_executable", return_value=True)
     mocker.patch.object(Raiseorlaunch, "__init__")
     mocker.patch.object(Raiseorlaunch, "run")
     Raiseorlaunch.__init__.return_value = None
-    sys.argv = ["__main__.py", "-c", "qutebrowser", "-d"]
+    sys.argv = ["__main__.py", "-c", "coolapp", "-d"]
     main.main()
 
 
