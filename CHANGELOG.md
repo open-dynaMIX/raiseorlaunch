@@ -1,19 +1,29 @@
+# v2.3.0
+
+## Features
+ - Add tests with 100% coverage
+ - Introduce [black](https://github.com/python/black)
+ - Introduce [isort](https://github.com/timothycrosley/isort)
+ - Introduce [flake8](https://gitlab.com/pycqa/flake8)
+ - Use Travis CI to ensure and enforce all of the above
+
+
 # v2.2.1
 
-# Fixes
+## Fixes
  - `--leave-fullscreen` doesn't work if no workspace has been provided #30
 
 
 # v2.2.0
 
-# Features
+## Features
  - Add flag to disable existing fullscreen #27
  - Rename --init-workspace to --target-workspace #28
 
 
 # v2.1.0
 
-# Features
+## Features
  - Added flag to set initial workspace #15
  - Move created windows to expected workspace #16
  - Window cycling #17
