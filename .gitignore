@@ -8,6 +8,12 @@ build/
 dist/
 *.egg-info/
 
+# AUR build products
+aur/*/src/
+aur/*/pkg/
+aur/*/*.tar.gz
+aur/*/*.tar.xz
+
 # Environments
 pyenv/
 pyenv.bak/
