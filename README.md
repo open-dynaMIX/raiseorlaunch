@@ -47,7 +47,7 @@ For Arch Linux users it's also available in the
 
 #### Dependencies
 
--   python3
+-   python3 or pypy3
 -   [i3ipc-python](https://github.com/acrisci/i3ipc-python)
 
 #### Install
