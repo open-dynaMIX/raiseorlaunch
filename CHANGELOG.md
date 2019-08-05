@@ -1,3 +1,11 @@
+# v2.3.1
+
+## Features
+ - Run tests with py37, py38 and pypy3
+ - Merge `.coveragerc`, `.flake8` and `.isort.cfg` into `setup.cfg`
+ - Add `LICENSE.txt`, tests and `tox.ini` to sdist
+
+
 # v2.3.0
 
 ## Features
