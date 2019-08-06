@@ -133,7 +133,7 @@ def parse_arguments(args):
         "-m",
         "--mark",
         dest="con_mark",
-        help="con_mark to use when raising and set when " "launching",
+        help="con_mark to use when raising and set when launching",
     )
 
     parser.add_argument(
@@ -169,7 +169,7 @@ def parse_arguments(args):
         "--leave-fullscreen",
         dest="leave_fullscreen",
         action="store_true",
-        help="Leave fullscreen on target " "workspace",
+        help="Leave fullscreen on target workspace",
     )
 
     parser.add_argument(
