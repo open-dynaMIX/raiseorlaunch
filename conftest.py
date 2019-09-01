@@ -96,7 +96,7 @@ def i3ipc_mock(mocker, tree_mock):
     mocker.patch.object(
         raiseorlaunch.i3ipc.Connection, "get_tree", return_value=tree_mock
     )
-    mocker.patch.object(i3ipc.socket.socket, "connect")
+    mocker.patch.object(i3ipc.connection.socket.socket, "connect")
 
 
 @pytest.fixture
