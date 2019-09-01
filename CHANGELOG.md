@@ -1,3 +1,9 @@
+# v2.3.2
+
+## Fixes
+ - [tests] fix i3ipc socket mock
+
+
 # v2.3.1
 
 ## Features
