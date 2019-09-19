@@ -25,11 +25,6 @@ A run-or-raise-application-launcher for [i3 window manager](https://i3wm.org/).
    workspace_auto_back_and_forth if more than one window matches
    the given properties)
  - Optionally leave fullscreen on target workspace
- - Created windows will always be moved to the expected workspace. This
-   fixes the behaviour of applications that don't implement
-   startup-notifications. By default this works for windows created
-   within 2 seconds. The timeout is configurable with
-   `-l/--event-time-limit`
 
 ## Installation
 
@@ -110,7 +105,9 @@ optional arguments:
                         con_mark to use when raising and set when launching
   -l EVENT_TIME_LIMIT, --event-time-limit EVENT_TIME_LIMIT
                         Time limit in seconds to listen to window events after
-                        exec. Defaults to 2
+                        exec. This is needed for setting a con_mark, or moving
+                        the window to a specific workspace or the scratchpad.
+                        Defaults to 2
   -i, --ignore-case     ignore case when comparing
   -C, --cycle           cycle through matching windows (this will break
                         workspace_back_and_forth if more than one window
