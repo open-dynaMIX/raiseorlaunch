@@ -141,8 +141,9 @@ def parse_arguments(args):
         "--event-time-limit",
         dest="event_time_limit",
         type=check_time_limit,
-        help="Time limit in seconds to "
-        "listen to window events after exec. Defaults to 2",
+        help="Time limit in seconds to listen to window events after exec. "
+        "This is needed for setting a con_mark, or moving the window to a "
+        "specific workspace or the scratchpad. Defaults to 2",
         default=2,
     )
 
