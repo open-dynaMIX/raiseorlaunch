@@ -128,6 +128,14 @@ class Raiseorlaunch(object):
                     "Setting workspace and initial workspace is ambiguous!"
                 )
 
+    def _need_to_listen_to_events(self):
+        """
+        Evaluate if we need to listen to window events.
+
+        :return: bool
+        """
+        return any([self.scratch, self.con_mark, self.target_workspace])
+
     @staticmethod
     def _log_format_con(window):
         """
@@ -499,9 +507,12 @@ class Raiseorlaunch(object):
                 self.target_workspace or self.current_ws.name
             )
 
-        self.i3.on("window::new", self._callback_new_window)
+        if self._need_to_listen_to_events():
+            self.i3.on("window::new", self._callback_new_window)
         self.run_command()
-        self.i3.main(timeout=self.event_time_limit)
+
+        if self._need_to_listen_to_events():
+            self.i3.main(timeout=self.event_time_limit)
 
     def _callback_new_window(self, connection, event):
         """
