@@ -329,14 +329,19 @@ def test__handle_running_cycle(focused, match, Con, rol, mocker):
 
 
 @pytest.mark.parametrize(
-    "current_ws,target_ws,should_call_switch_ws",
-    [("ws1", "ws1", False), ("ws1", None, False), ("ws1", "ws2", True)],
+    "current_ws,target_ws,should_call_switch_ws,handle_event",
+    [
+        ("ws1", "ws1", False, True),
+        ("ws1", None, False, False),
+        ("ws1", "ws2", True, True),
+    ],
 )
 @pytest.mark.parametrize("leave_fullscreen", [True, False])
 def test__handle_not_running(
     current_ws,
     target_ws,
     should_call_switch_ws,
+    handle_event,
     leave_fullscreen,
     rol,
     Workspace,
@@ -370,9 +375,9 @@ def test__handle_not_running(
     else:
         assert not leave_fullscreen_on_workspace.called
 
-    assert on.called
+    assert on.called == handle_event
     assert run_command.called
-    assert main.called
+    assert main.called == handle_event
 
 
 @pytest.mark.parametrize("class1,class2", [("class1", "class2")])
