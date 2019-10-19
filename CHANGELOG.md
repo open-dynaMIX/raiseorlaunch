@@ -1,3 +1,10 @@
+# v2.3.3
+
+## Fixes
+ - We do no longer automatically move windows to the workspace we think it belongs,
+   because that interfered with i3s `assign`. #38
+
+
 # v2.3.2
 
 ## Fixes
