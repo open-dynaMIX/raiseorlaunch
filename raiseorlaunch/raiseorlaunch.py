@@ -144,8 +144,17 @@ class Raiseorlaunch(object):
         Returns:
             str: '<Con: class="{}" instance="{}" title="{}" id={}>'
         """
-        return '<Con: class="{}" instance="{}" title="{}" id={}>'.format(
-            window.window_class, window.window_instance, window.name, window.id
+
+        def quote(value):
+            if isinstance(value, str):
+                return '"{}"'.format(value)
+            return value
+
+        return "<Con: class={} instance={} title={} id={}>".format(
+            quote(window.window_class),
+            quote(window.window_instance),
+            quote(window.name),
+            window.id,
         )
 
     def _match_regex(self, regex, string_to_match):
@@ -177,7 +186,8 @@ class Raiseorlaunch(object):
             (self.wm_instance, window.window_instance),
             (self.wm_title, window.name),
         ]:
-            if pattern and not self._match_regex(pattern, value):
+
+            if pattern and (not value or not self._match_regex(pattern, value)):
                 return False
 
         logger.debug("Window match: {}".format(self._log_format_con(window)))
@@ -238,6 +248,14 @@ class Raiseorlaunch(object):
         window_list = self._get_window_list()
         found = []
         for leave in window_list:
+            if (
+                leave.window_class
+                == leave.window_instance
+                == leave.window_title
+                is None
+            ):
+                logger.debug("Window without any properties found.")
+                continue
             if self._compare_running(leave):
                 found.append(leave)
 

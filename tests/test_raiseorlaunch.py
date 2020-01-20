@@ -76,8 +76,8 @@ def test__log_format_con(minimal_args, Con, mocker):
 
     rol = Raiseorlaunch(**minimal_args)
     assert (
-        rol._log_format_con(Con())
-        == '<Con: class="some_class" instance="some_instance" title="some_name" id=some_id>'
+        rol._log_format_con(Con(window_class=None))
+        == '<Con: class=None instance="some_instance" title="some_name" id=some_id>'
     )
 
 
@@ -107,7 +107,8 @@ def test__match_regex(minimal_args, ignore_case, regex, string, success, mocker)
             {"window_class": "Qutebrowser"},
             True,
         ),
-        ({"wm_class": "something"}, {"window_class": "Qutebrowser"}, False),
+        ({"wm_class": "foo"}, {"window_class": "Qutebrowser"}, False),
+        ({"wm_class": "foo"}, {"window_class": None}, False),
     ],
 )
 def test__compare_running(minimal_args, rol, Con, config, con_values, success):
@@ -125,8 +126,8 @@ def test__compare_running(minimal_args, rol, Con, config, con_values, success):
         (
             False,
             None,
-            4,
-            ["Home", "i3 - improved tiling wm - qutebrowser", "notes", "htop"],
+            5,
+            ["Home", None, "i3 - improved tiling wm - qutebrowser", "notes", "htop"],
         ),
         (True, None, 2, ["notes", "htop"]),
         (False, "workspace_1", 2, ["i3 - improved tiling wm - qutebrowser", "htop"]),
@@ -219,7 +220,11 @@ def test_leave_fullscreen_on_workspace(workspace, exceptions, called, rol, mocke
 )
 def test__choose_if_multiple(target_workspace, multi, rol):
     rol.target_workspace = target_workspace
-    cons = [c for c in rol._get_window_list() if c.window_instance.startswith("test")]
+    cons = [
+        c
+        for c in rol._get_window_list()
+        if c.window_instance and c.window_instance.startswith("test")
+    ]
     if not multi:
         cons = [cons[0]]
     con = rol._choose_if_multiple(cons)
@@ -242,7 +247,9 @@ def test__handle_running(
     rol.cycle = cycle
     rol.scratch = scratch
     running = [
-        c for c in rol._get_window_list() if c.window_instance.startswith("test")
+        c
+        for c in rol._get_window_list()
+        if c.window_instance and c.window_instance.startswith("test")
     ]
     if not multi:
         running = [running[0]]
