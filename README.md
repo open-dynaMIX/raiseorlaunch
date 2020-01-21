@@ -2,7 +2,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/raiseorlaunch.svg)](https://pypi.org/project/raiseorlaunch/)
 [![Python versions](https://img.shields.io/pypi/pyversions/raiseorlaunch.svg)](https://pypi.org/project/raiseorlaunch/)
-[![Build Status](https://github.com/open-dynaMIX/raiseorlaunch/workflows/Tests/badge.svg)](https://github.com/open-dynaMIX/raiseorlaunch/)
+[![Build Status](https://github.com/open-dynaMIX/raiseorlaunch/workflows/Tests/badge.svg)](https://github.com/open-dynaMIX/raiseorlaunch/actions?query=workflow%3ATests)
 [![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/open-dynaMIX/raiseorlaunch/blob/master/.coveragerc#L9)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 [![License](https://img.shields.io/github/license/open-dynaMIX/raiseorlaunch.svg)](https://opensource.org/licenses/MIT)
