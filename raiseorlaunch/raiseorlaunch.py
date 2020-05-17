@@ -205,9 +205,9 @@ class Raiseorlaunch(object):
             leaves = self.tree.leaves()
             if self.scratch:
                 return [
-                    l
-                    for l in leaves
-                    if l.parent.scratchpad_state in ["changed", "fresh"]
+                    leave
+                    for leave in leaves
+                    if leave.parent.scratchpad_state in ["changed", "fresh"]
                 ]
             else:
                 return leaves
