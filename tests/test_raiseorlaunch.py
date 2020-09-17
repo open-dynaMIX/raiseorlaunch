@@ -89,6 +89,7 @@ def test__log_format_con(minimal_args, Con, mocker):
         ("qutebrowser", "Qutebrowser", False, False),
         ("^qutebrowser", "something_qutebrowser", False, True),
         ("^qutebrowser$", "qutebrowser_something", False, False),
+        ("qutebrowser", None, False, True),
     ],
 )
 def test__match_regex(minimal_args, ignore_case, regex, string, success, mocker):

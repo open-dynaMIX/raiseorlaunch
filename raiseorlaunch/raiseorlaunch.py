@@ -168,6 +168,8 @@ class Raiseorlaunch(object):
         Returns:
             bool: True for match, False otherwise.
         """
+        if string_to_match is None:
+            string_to_match = ""
         matchlist = [regex, string_to_match, *self.regex_flags]
         return True if re.match(*matchlist) else False
 
