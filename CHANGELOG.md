@@ -1,3 +1,9 @@
+# v2.3.4
+
+## Fixes
+ - handle empty window properties (4679401e2858c261bc5b403cdd04644019b8508e)
+
+
 # v2.3.3
 
 ## Fixes

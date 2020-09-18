@@ -8,9 +8,9 @@ for i3 window manager.
 
 __title__ = "raiseorlaunch"
 __description__ = "A run-or-raise-application-launcher for i3 window manager."
-__version__ = "2.3.3"
+__version__ = "2.3.4"
 __license__ = "MIT"
-__author__ = "Fabio Rämi"
+__author__ = "Fabio Ambauen"
 
 
 import logging

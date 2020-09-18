@@ -17,12 +17,12 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="raiseorlaunch",
-    version="2.3.3",
+    version="2.3.4",
     description="A run-or-raise-application-launcher for i3 window manager.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/open-dynaMIX/raiseorlaunch",
-    author="Fabio Rämi",
+    author="Fabio Ambauen",
     license="MIT",
     classifiers=[
         "Development Status :: 4 - Beta",
