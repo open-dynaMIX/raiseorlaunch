@@ -459,7 +459,10 @@ class Raiseorlaunch(object):
         if not window.focused:
             self.focus_window(window)
         else:
-            if self.current_ws.name == self.get_current_workspace().name:
+            if (
+                self.workspace
+                and self.current_ws.name == self.get_current_workspace().name
+            ):
                 logger.debug(
                     "We're on the right workspace. "
                     "Switching anyway to retain "

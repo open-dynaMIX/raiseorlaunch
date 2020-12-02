@@ -283,6 +283,7 @@ def test__handle_running_no_scratch(
 
     window = Con(focused=focused)
 
+    rol.workspace = "ws"
     rol.current_ws = Workspace(name=current_ws_name)
     rol._handle_running_no_scratch(window)
 
