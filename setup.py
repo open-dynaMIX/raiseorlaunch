@@ -17,7 +17,7 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="raiseorlaunch",
-    version="2.3.4",
+    version="2.3.5",
     description="A run-or-raise-application-launcher for i3 window manager.",
     long_description=long_description,
     long_description_content_type="text/markdown",
