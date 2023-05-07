@@ -181,12 +181,11 @@ class Raiseorlaunch(object):
         Returns:
             bool: True for match, False otherwise.
         """
-        for (pattern, value) in [
+        for pattern, value in [
             (self.wm_class, window.window_class),
             (self.wm_instance, window.window_instance),
             (self.wm_title, window.name),
         ]:
-
             if pattern and (not value or not self._match_regex(pattern, value)):
                 return False
 
