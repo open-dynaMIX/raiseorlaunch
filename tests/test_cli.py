@@ -37,7 +37,7 @@ def test_arguments_all(default_args_cli, mocker):
             "debug": True,
         }
     )
-    mocker.patch.object(main.spawn, "find_executable", return_value=True)
+    mocker.patch.object(main.os, "access", return_value=True)
     expected_args = Namespace(**default_args_cli)
     args = main.parse_arguments(initial_args)[0]
     assert args == expected_args
@@ -77,7 +77,7 @@ def test_check_time_limit():
 
 
 def test_main(mocker, sys_argv_handler):
-    mocker.patch.object(main.spawn, "find_executable", return_value=True)
+    mocker.patch.object(main.os, "access", return_value=True)
     mocker.patch.object(Raiseorlaunch, "__init__")
     mocker.patch.object(Raiseorlaunch, "run")
     Raiseorlaunch.__init__.return_value = None

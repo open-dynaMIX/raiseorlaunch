@@ -10,7 +10,6 @@ import argparse
 import logging
 import os
 import sys
-from distutils import spawn
 
 from raiseorlaunch import (
     Raiseorlaunch,
@@ -39,7 +38,7 @@ def verify_app(parser, application):
             )
         )
 
-    is_exe = spawn.find_executable(application)
+    is_exe = os.access(application, os.X_OK)
     if not is_exe:
         raise_exception()
     elif is_exe == application:  # pragma: no cover
